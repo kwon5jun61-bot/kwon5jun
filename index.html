@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026년 8월 경제활동인구조사 근로형태별 부가조사 대시보드</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --navy: #1e3a5f;
+      --primary: #2563eb;
+      --primary-light: #dbeafe;
+      --accent: #f97316;
+      --accent-light: #ffedd5;
+      --emerald: #059669;
+      --emerald-light: #d1fae5;
+      --rose: #e11d48;
+      --rose-light: #ffe4e6;
+      --shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', 'Malgun Gothic', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #0f2942 0%, #1e3a5f 60%, #1d4ed8 100%);
+      color: #fff;
+      padding: 20px 28px;
+      box-shadow: 0 4px 12px rgba(15, 41, 66, 0.18);
+    }
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .header-title h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .header-title p {
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      margin-top: 3px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .control-group label {
+      font-size: 0.8rem;
+      color: #e2e8f0;
+      font-weight: 600;
+    }
+    .control-group select {
+      background: #fff;
+      color: var(--text);
+      border: none;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+    .seg-btns {
+      display: flex;
+      gap: 4px;
+    }
+    .seg-btn {
+      background: transparent;
+      color: #e2e8f0;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .seg-btn.active {
+      background: #fff;
+      color: var(--navy);
+    }
+
+    /* Navigation Tabs */
+    .nav-wrap {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .nav-tabs {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 28px;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+    }
+    .nav-tab {
+      background: none;
+      border: none;
+      padding: 13px 18px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .nav-tab:hover { color: var(--text); }
+    .nav-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    /* Main Container */
+    .main {
+      max-width: 1400px;
+      margin: 22px auto;
+      padding: 0 28px 40px;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .kpi-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .kpi-value {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text);
+      margin: 6px 0 4px;
+      letter-spacing: -0.02em;
+    }
+    .kpi-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+    .badge-up { background: var(--rose-light); color: var(--rose); }
+    .badge-down { background: var(--primary-light); color: var(--primary); }
+    .badge-good { background: var(--emerald-light); color: var(--emerald); }
+    .badge-neutral { background: #f1f5f9; color: #475569; }
+
+    /* Chart Cards */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    @media (max-width: 1024px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+    .grid-2 .card, .grid-3 .card { margin-bottom: 0; }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .card-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .chart-box {
+      position: relative;
+      height: 320px;
+      width: 100%;
+    }
+    .chart-box.tall { height: 420px; }
+
+    /* Sub-controls inside cards */
+    .pill-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 8px;
+      gap: 2px;
+    }
+    .pill-btn {
+      border: none;
+      background: transparent;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .pill-btn.active {
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    /* Info Box */
+    .insight-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.83rem;
+      color: #1e3a8a;
+      margin-bottom: 18px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .insight-box strong { font-weight: 700; }
+
+    /* Table */
+    .table-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .search-input {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      width: 220px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--primary); }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+    th, td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+      white-space: nowrap;
+    }
+    th {
+      background: #f8fafc;
+      color: var(--navy);
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+    }
+    th:hover { background: #eef2f7; }
+    th:first-child, td:first-child,
+    th:nth-child(2), td:nth-child(2) {
+      text-align: left;
+    }
+    tr:hover td { background: #f8fafc; }
+    tr.row-highlight td {
+      background: #eff6ff;
+      font-weight: 700;
+    }
+    tr.row-sub td:first-child {
+      padding-left: 24px;
+      color: var(--text-muted);
+    }
+
+    .footer {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 16px 28px 32px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-title">
+        <h1>2026년 8월 경제활동인구조사 근로형태별 부가조사 대시보드</h1>
+        <p>출처: 국가데이터처(통계청) 보도자료 통계표 1~4번 | 기준시점: 매년 8월 (2019~2026)</p>
+      </div>
+      <div class="controls">
+        <div class="control-group">
+          <label for="yearSelect">기준연도</label>
+          <select id="yearSelect">
+            <option value="2026" selected>2026년</option>
+            <option value="2025">2025년</option>
+            <option value="2024">2024년</option>
+            <option value="2023">2023년</option>
+            <option value="2022">2022년</option>
+            <option value="2021">2021년</option>
+            <option value="2020">2020년</option>
+            <option value="2019">2019년</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>성별(규모)</label>
+          <div class="seg-btns" id="genderFilter">
+            <button class="seg-btn active" data-gender="전체">전체</button>
+            <button class="seg-btn" data-gender="남자">남자</button>
+            <button class="seg-btn" data-gender="여자">여자</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav-wrap">
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-tab="overview">종합 현황</button>
+      <button class="nav-tab" data-tab="chars">연령 · 산업 · 직업별</button>
+      <button class="nav-tab" data-tab="conds">근로조건 · 격차 분석</button>
+      <button class="nav-tab" data-tab="sido">시도별 현황 (2025~2026)</button>
+    </div>
+  </nav>
+
+  <main class="main">
+    <!-- TAB 1: 종합 현황 -->
+    <section id="tab-overview" class="tab-panel active">
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <div class="insight-box" id="overviewInsight"></div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">연도별 정규직 · 비정규직 규모 및 비정규직 비중 추이</div>
+              <div class="card-desc" id="scaleTrendDesc">성별: 전체 | 단위: 천명, % (2019~2026년 8월)</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chartScaleTrend"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">비정규직 근로형태별 규모 추이 (한시적 · 시간제 · 비전형)</div>
+              <div class="card-desc">단위: 천명 (※ 유형 간 중복 인원 포함으로 합계와 비정규직 계 불일치)</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chartNonregTypes"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">성별 비정규직 비중(%) 추이 비교</div>
+              <div class="card-desc">남성 vs 여성 임금근로자 중 비정규직 비율 (2019~2026년)</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chartGenderPct"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" id="typeBarTitle">2026년 비정규직 유형별 규모 (성별 비교)</div>
+              <div class="card-desc">남자 vs 여자 한시적·시간제·비전형 근로자 규모 (천명)</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chartTypeGenderBar"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: 연령·산업·직업별 -->
+    <section id="tab-chars" class="tab-panel">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" id="ageBarTitle">연령계층별 비정규직 비중 및 추정규모</div>
+              <div class="card-desc">비정규직 내 연령대별 구성비(%) 및 추정인원(천명)</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chartAgeBar"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">연령계층별 비정규직 비중 추이 (2019~2026)</div>
+              <div class="card-desc">60세 이상 고령층 비중 변화 및 20~50대 추이 (%)</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chartAgeTrend"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" id="industryTitle">산업별 비정규직 비중</div>
+              <div class="card-desc">17개 산업별 비정규직 내 비중(%) 내림차순</div>
+            </div>
+          </div>
+          <div class="chart-box tall">
+            <canvas id="chartIndustry"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" id="occTitle">직업별 비정규직 구성비</div>
+              <div class="card-desc">6대 직업분류별 비정규직 비중(%) 및 추정규모(천명)</div>
+            </div>
+          </div>
+          <div class="chart-box tall">
+            <canvas id="chartOccupation"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: 근로조건·격차 분석 -->
+    <section id="tab-conds" class="tab-panel">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">최근 3개월 월평균임금 추이 (정규직 vs 비정규직)</div>
+              <div class="card-desc">단위: 만원 (우측 축: 정규직 대비 비정규직 임금 비율 %)</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chartWageTrend"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" id="insuranceTitle">사회보험 가입률 & 근로복지 수혜율 비교</div>
+              <div class="card-desc">정규직 vs 비정규직 격차 (% / %p)</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chartBenefitBar"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">평균 근속기간 추이 (개월)</div>
+              <div class="card-desc">임금근로자 · 정규직 · 비정규직 (2019~2026)</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chartTenure"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">주당 평균 취업시간 추이 (시간)</div>
+              <div class="card-desc">임금근로자 · 정규직 · 비정규직 (조사대상주간 공휴일 영향 포함)</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chartHours"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: 시도별 현황 -->
+    <section id="tab-sido" class="tab-panel">
+      <div class="insight-box">
+        <div>
+          <strong>전남광주통합특별시 통계 유의사항:</strong> 2026년 8월 기준부터 통합시도인 <strong>전남광주</strong>가 기본 집계 단위로 제공되며, 기존 <strong>광주</strong>·<strong>전남</strong>은 하위자료입니다. 아래 차트는 중복 합산을 방지하기 위해 기본적으로 16개 광역단위(전국 제외, 광주·전남 하위 제외)를 표시하며, 필요 시 하위자료 포함 토글로 확인할 수 있습니다.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title" id="sidoChartTitle">시도별 비정규직 규모 및 비중</div>
+            <div class="card-desc">2025년 · 2026년 8월 기준 (상단 기준연도 선택 연동)</div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <div class="pill-group" id="sidoMetricGroup">
+              <button class="pill-btn active" data-metric="nonregular">비정규직 규모(천명)</button>
+              <button class="pill-btn" data-metric="nonreg_pct">비정규직 비중(%)</button>
+              <button class="pill-btn" data-metric="diff_nonregular">전년 증감(천명)</button>
+            </div>
+            <div class="pill-group" id="sidoScopeGroup">
+              <button class="pill-btn active" data-scope="sum">시도합계 기준(16개)</button>
+              <button class="pill-btn" data-scope="all">광주·전남 하위 포함</button>
+            </div>
+          </div>
+        </div>
+        <div class="chart-box tall">
+          <canvas id="chartSido"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">시도별 상세 데이터 테이블</div>
+            <div class="card-desc">컬럼 헤더를 클릭하여 정렬할 수 있습니다. (단위: 천명, %)</div>
+          </div>
+          <div class="table-toolbar">
+            <input type="text" id="sidoSearch" class="search-input" placeholder="시도명 검색 (예: 서울, 경기...)" />
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="sidoTable">
+            <thead>
+              <tr>
+                <th data-sort="sido">시도</th>
+                <th data-sort="region_type">구분</th>
+                <th data-sort="total">임금근로자</th>
+                <th data-sort="regular">정규직</th>
+                <th data-sort="nonregular">비정규직</th>
+                <th data-sort="nonreg_pct">비정규직 비중(%)</th>
+                <th data-sort="diff_total">임금근로자 증감</th>
+                <th data-sort="diff_nonregular">비정규직 증감</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    ※ 자료 출처: 「2026년 8월 경제활동인구조사 근로형태별 부가조사 결과」 통계표 1~4번 | 사회보험 가입률은 가입대상 여부에 관계없이 전체 임금근로자를 대상으로 조사한 수치입니다.
+  </footer>
+
+  <script id="embedded-data" type="application/json">{"scale": [{"year": 2019, "gender": "전체", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 20559}, {"year": 2020, "gender": "전체", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 20446}, {"year": 2021, "gender": "전체", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 20992}, {"year": 2022, "gender": "전체", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 21724}, {"year": 2023, "gender": "전체", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 21954}, {"year": 2024, "gender": "전체", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 22143}, {"year": 2025, "gender": "전체", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 22413}, {"year": 2026, "gender": "전체", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 22526}, {"year": 2019, "gender": "전체", "category": "정규직", "item": "정규직", "unit": "천명", "value": 13078}, {"year": 2020, "gender": "전체", "category": "정규직", "item": "정규직", "unit": "천명", "value": 13020}, {"year": 2021, "gender": "전체", "category": "정규직", "item": "정규직", "unit": "천명", "value": 12927}, {"year": 2022, "gender": "전체", "category": "정규직", "item": "정규직", "unit": "천명", "value": 13568}, {"year": 2023, "gender": "전체", "category": "정규직", "item": "정규직", "unit": "천명", "value": 13832}, {"year": 2024, "gender": "전체", "category": "정규직", "item": "정규직", "unit": "천명", "value": 13685}, {"year": 2025, "gender": "전체", "category": "정규직", "item": "정규직", "unit": "천명", "value": 13845}, {"year": 2026, "gender": "전체", "category": "정규직", "item": "정규직", "unit": "천명", "value": 13855}, {"year": 2019, "gender": "전체", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 7481}, {"year": 2020, "gender": "전체", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 7426}, {"year": 2021, "gender": "전체", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 8066}, {"year": 2022, "gender": "전체", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 8156}, {"year": 2023, "gender": "전체", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 8122}, {"year": 2024, "gender": "전체", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 8459}, {"year": 2025, "gender": "전체", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 8568}, {"year": 2026, "gender": "전체", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 8671}, {"year": 2019, "gender": "전체", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 36.4}, {"year": 2020, "gender": "전체", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 36.3}, {"year": 2021, "gender": "전체", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 38.4}, {"year": 2022, "gender": "전체", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 37.5}, {"year": 2023, "gender": "전체", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 37}, {"year": 2024, "gender": "전체", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 38.2}, {"year": 2025, "gender": "전체", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 38.2}, {"year": 2026, "gender": "전체", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 38.5}, {"year": 2019, "gender": "전체", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 4785}, {"year": 2020, "gender": "전체", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 4608}, {"year": 2021, "gender": "전체", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 5171}, {"year": 2022, "gender": "전체", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 5348}, {"year": 2023, "gender": "전체", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 5259}, {"year": 2024, "gender": "전체", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 5628}, {"year": 2025, "gender": "전체", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 5848}, {"year": 2026, "gender": "전체", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 6035}, {"year": 2019, "gender": "전체", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 3156}, {"year": 2020, "gender": "전체", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 3252}, {"year": 2021, "gender": "전체", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 3512}, {"year": 2022, "gender": "전체", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 3687}, {"year": 2023, "gender": "전체", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 3873}, {"year": 2024, "gender": "전체", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 4256}, {"year": 2025, "gender": "전체", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 4229}, {"year": 2026, "gender": "전체", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 4382}, {"year": 2019, "gender": "전체", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 2045}, {"year": 2020, "gender": "전체", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 2073}, {"year": 2021, "gender": "전체", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 2278}, {"year": 2022, "gender": "전체", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 2131}, {"year": 2023, "gender": "전체", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 1957}, {"year": 2024, "gender": "전체", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 1903}, {"year": 2025, "gender": "전체", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 1834}, {"year": 2026, "gender": "전체", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 1786}, {"year": 2019, "gender": "남자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 11396}, {"year": 2020, "gender": "남자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 11361}, {"year": 2021, "gender": "남자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 11517}, {"year": 2022, "gender": "남자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 11936}, {"year": 2023, "gender": "남자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 11927}, {"year": 2024, "gender": "남자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 11908}, {"year": 2025, "gender": "남자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 11953}, {"year": 2026, "gender": "남자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 11965}, {"year": 2019, "gender": "남자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 8040}, {"year": 2020, "gender": "남자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 8027}, {"year": 2021, "gender": "남자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 7941}, {"year": 2022, "gender": "남자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 8283}, {"year": 2023, "gender": "남자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 8370}, {"year": 2024, "gender": "남자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 8293}, {"year": 2025, "gender": "남자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 8302}, {"year": 2026, "gender": "남자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 8258}, {"year": 2019, "gender": "남자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 3356}, {"year": 2020, "gender": "남자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 3335}, {"year": 2021, "gender": "남자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 3575}, {"year": 2022, "gender": "남자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 3653}, {"year": 2023, "gender": "남자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 3557}, {"year": 2024, "gender": "남자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 3615}, {"year": 2025, "gender": "남자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 3650}, {"year": 2026, "gender": "남자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 3708}, {"year": 2019, "gender": "남자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 29.4}, {"year": 2020, "gender": "남자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 29.4}, {"year": 2021, "gender": "남자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 31}, {"year": 2022, "gender": "남자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 30.6}, {"year": 2023, "gender": "남자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 29.8}, {"year": 2024, "gender": "남자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 30.4}, {"year": 2025, "gender": "남자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 30.5}, {"year": 2026, "gender": "남자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 31}, {"year": 2019, "gender": "남자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2238}, {"year": 2020, "gender": "남자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2079}, {"year": 2021, "gender": "남자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2234}, {"year": 2022, "gender": "남자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2368}, {"year": 2023, "gender": "남자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2349}, {"year": 2024, "gender": "남자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2470}, {"year": 2025, "gender": "남자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2570}, {"year": 2026, "gender": "남자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2706}, {"year": 2019, "gender": "남자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 846}, {"year": 2020, "gender": "남자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 915}, {"year": 2021, "gender": "남자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 1011}, {"year": 2022, "gender": "남자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 1125}, {"year": 2023, "gender": "남자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 1143}, {"year": 2024, "gender": "남자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 1240}, {"year": 2025, "gender": "남자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 1187}, {"year": 2026, "gender": "남자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 1245}, {"year": 2019, "gender": "남자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 1125}, {"year": 2020, "gender": "남자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 1212}, {"year": 2021, "gender": "남자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 1342}, {"year": 2022, "gender": "남자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 1209}, {"year": 2023, "gender": "남자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 1090}, {"year": 2024, "gender": "남자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 1065}, {"year": 2025, "gender": "남자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 1006}, {"year": 2026, "gender": "남자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 942}, {"year": 2019, "gender": "여자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 9163}, {"year": 2020, "gender": "여자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 9085}, {"year": 2021, "gender": "여자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 9476}, {"year": 2022, "gender": "여자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 9788}, {"year": 2023, "gender": "여자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 10027}, {"year": 2024, "gender": "여자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 10235}, {"year": 2025, "gender": "여자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 10460}, {"year": 2026, "gender": "여자", "category": "임금근로자", "item": "임금근로자 계", "unit": "천명", "value": 10561}, {"year": 2019, "gender": "여자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 5038}, {"year": 2020, "gender": "여자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 4994}, {"year": 2021, "gender": "여자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 4985}, {"year": 2022, "gender": "여자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 5285}, {"year": 2023, "gender": "여자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 5462}, {"year": 2024, "gender": "여자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 5392}, {"year": 2025, "gender": "여자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 5543}, {"year": 2026, "gender": "여자", "category": "정규직", "item": "정규직", "unit": "천명", "value": 5597}, {"year": 2019, "gender": "여자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 4125}, {"year": 2020, "gender": "여자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 4091}, {"year": 2021, "gender": "여자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 4491}, {"year": 2022, "gender": "여자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 4503}, {"year": 2023, "gender": "여자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 4565}, {"year": 2024, "gender": "여자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 4844}, {"year": 2025, "gender": "여자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 4918}, {"year": 2026, "gender": "여자", "category": "비정규직", "item": "비정규직 계", "unit": "천명", "value": 4963}, {"year": 2019, "gender": "여자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 45}, {"year": 2020, "gender": "여자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 45}, {"year": 2021, "gender": "여자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 47.4}, {"year": 2022, "gender": "여자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 46}, {"year": 2023, "gender": "여자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 45.5}, {"year": 2024, "gender": "여자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 47.3}, {"year": 2025, "gender": "여자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 47}, {"year": 2026, "gender": "여자", "category": "비정규직", "item": "비정규직 비중", "unit": "%", "value": 47}, {"year": 2019, "gender": "여자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2547}, {"year": 2020, "gender": "여자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2529}, {"year": 2021, "gender": "여자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2938}, {"year": 2022, "gender": "여자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2980}, {"year": 2023, "gender": "여자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 2910}, {"year": 2024, "gender": "여자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 3158}, {"year": 2025, "gender": "여자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 3278}, {"year": 2026, "gender": "여자", "category": "비정규직", "item": "한시적", "unit": "천명", "value": 3329}, {"year": 2019, "gender": "여자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 2310}, {"year": 2020, "gender": "여자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 2337}, {"year": 2021, "gender": "여자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 2502}, {"year": 2022, "gender": "여자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 2562}, {"year": 2023, "gender": "여자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 2731}, {"year": 2024, "gender": "여자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 3016}, {"year": 2025, "gender": "여자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 3042}, {"year": 2026, "gender": "여자", "category": "비정규직", "item": "시간제", "unit": "천명", "value": 3136}, {"year": 2019, "gender": "여자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 920}, {"year": 2020, "gender": "여자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 861}, {"year": 2021, "gender": "여자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 936}, {"year": 2022, "gender": "여자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 922}, {"year": 2023, "gender": "여자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 866}, {"year": 2024, "gender": "여자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 838}, {"year": 2025, "gender": "여자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 828}, {"year": 2026, "gender": "여자", "category": "비정규직", "item": "비전형", "unit": "천명", "value": 844}], "chars": [{"year": 2019, "dim": "연령계층별", "item": "15 - 19세", "pct": 2, "total_nonreg": 7481, "est_k": 149.6}, {"year": 2020, "dim": "연령계층별", "item": "15 - 19세", "pct": 1.9, "total_nonreg": 7426, "est_k": 141.1}, {"year": 2021, "dim": "연령계층별", "item": "15 - 19세", "pct": 1.8, "total_nonreg": 8066, "est_k": 145.2}, {"year": 2022, "dim": "연령계층별", "item": "15 - 19세", "pct": 1.9, "total_nonreg": 8156, "est_k": 155.0}, {"year": 2023, "dim": "연령계층별", "item": "15 - 19세", "pct": 1.9, "total_nonreg": 8122, "est_k": 154.3}, {"year": 2024, "dim": "연령계층별", "item": "15 - 19세", "pct": 1.7, "total_nonreg": 8459, "est_k": 143.8}, {"year": 2025, "dim": "연령계층별", "item": "15 - 19세", "pct": 1.3, "total_nonreg": 8568, "est_k": 111.4}, {"year": 2026, "dim": "연령계층별", "item": "15 - 19세", "pct": 1.6, "total_nonreg": 8671, "est_k": 138.7}, {"year": 2019, "dim": "연령계층별", "item": "20 - 29세", "pct": 18.2, "total_nonreg": 7481, "est_k": 1361.5}, {"year": 2020, "dim": "연령계층별", "item": "20 - 29세", "pct": 17.3, "total_nonreg": 7426, "est_k": 1284.7}, {"year": 2021, "dim": "연령계층별", "item": "20 - 29세", "pct": 17.5, "total_nonreg": 8066, "est_k": 1411.5}, {"year": 2022, "dim": "연령계층별", "item": "20 - 29세", "pct": 17.3, "total_nonreg": 8156, "est_k": 1411.0}, {"year": 2023, "dim": "연령계층별", "item": "20 - 29세", "pct": 17.5, "total_nonreg": 8122, "est_k": 1421.3}, {"year": 2024, "dim": "연령계층별", "item": "20 - 29세", "pct": 17.3, "total_nonreg": 8459, "est_k": 1463.4}, {"year": 2025, "dim": "연령계층별", "item": "20 - 29세", "pct": 16.7, "total_nonreg": 8568, "est_k": 1430.9}, {"year": 2026, "dim": "연령계층별", "item": "20 - 29세", "pct": 15.5, "total_nonreg": 8671, "est_k": 1344.0}, {"year": 2019, "dim": "연령계층별", "item": "30 - 39세", "pct": 14.8, "total_nonreg": 7481, "est_k": 1107.2}, {"year": 2020, "dim": "연령계층별", "item": "30 - 39세", "pct": 13.8, "total_nonreg": 7426, "est_k": 1024.8}, {"year": 2021, "dim": "연령계층별", "item": "30 - 39세", "pct": 12.6, "total_nonreg": 8066, "est_k": 1016.3}, {"year": 2022, "dim": "연령계층별", "item": "30 - 39세", "pct": 12, "total_nonreg": 8156, "est_k": 978.7}, {"year": 2023, "dim": "연령계층별", "item": "30 - 39세", "pct": 12.2, "total_nonreg": 8122, "est_k": 990.9}, {"year": 2024, "dim": "연령계층별", "item": "30 - 39세", "pct": 12.7, "total_nonreg": 8459, "est_k": 1074.3}, {"year": 2025, "dim": "연령계층별", "item": "30 - 39세", "pct": 13.3, "total_nonreg": 8568, "est_k": 1139.5}, {"year": 2026, "dim": "연령계층별", "item": "30 - 39세", "pct": 13.6, "total_nonreg": 8671, "est_k": 1179.3}, {"year": 2019, "dim": "연령계층별", "item": "40 - 49세", "pct": 18, "total_nonreg": 7481, "est_k": 1346.6}, {"year": 2020, "dim": "연령계층별", "item": "40 - 49세", "pct": 17.6, "total_nonreg": 7426, "est_k": 1307.0}, {"year": 2021, "dim": "연령계층별", "item": "40 - 49세", "pct": 17.6, "total_nonreg": 8066, "est_k": 1419.6}, {"year": 2022, "dim": "연령계층별", "item": "40 - 49세", "pct": 16.2, "total_nonreg": 8156, "est_k": 1321.3}, {"year": 2023, "dim": "연령계층별", "item": "40 - 49세", "pct": 16.1, "total_nonreg": 8122, "est_k": 1307.6}, {"year": 2024, "dim": "연령계층별", "item": "40 - 49세", "pct": 15.5, "total_nonreg": 8459, "est_k": 1311.1}, {"year": 2025, "dim": "연령계층별", "item": "40 - 49세", "pct": 14.1, "total_nonreg": 8568, "est_k": 1208.1}, {"year": 2026, "dim": "연령계층별", "item": "40 - 49세", "pct": 13.7, "total_nonreg": 8671, "est_k": 1187.9}, {"year": 2019, "dim": "연령계층별", "item": "50 - 59세", "pct": 21, "total_nonreg": 7481, "est_k": 1571.0}, {"year": 2020, "dim": "연령계층별", "item": "50 - 59세", "pct": 20.8, "total_nonreg": 7426, "est_k": 1544.6}, {"year": 2021, "dim": "연령계층별", "item": "50 - 59세", "pct": 20.7, "total_nonreg": 8066, "est_k": 1669.7}, {"year": 2022, "dim": "연령계층별", "item": "50 - 59세", "pct": 21.1, "total_nonreg": 8156, "est_k": 1720.9}, {"year": 2023, "dim": "연령계층별", "item": "50 - 59세", "pct": 20, "total_nonreg": 8122, "est_k": 1624.4}, {"year": 2024, "dim": "연령계층별", "item": "50 - 59세", "pct": 19.6, "total_nonreg": 8459, "est_k": 1658.0}, {"year": 2025, "dim": "연령계층별", "item": "50 - 59세", "pct": 19.1, "total_nonreg": 8568, "est_k": 1636.5}, {"year": 2026, "dim": "연령계층별", "item": "50 - 59세", "pct": 19, "total_nonreg": 8671, "est_k": 1647.5}, {"year": 2019, "dim": "연령계층별", "item": "60세이상", "pct": 25.9, "total_nonreg": 7481, "est_k": 1937.6}, {"year": 2020, "dim": "연령계층별", "item": "60세이상", "pct": 28.7, "total_nonreg": 7426, "est_k": 2131.3}, {"year": 2021, "dim": "연령계층별", "item": "60세이상", "pct": 29.8, "total_nonreg": 8066, "est_k": 2403.7}, {"year": 2022, "dim": "연령계층별", "item": "60세이상", "pct": 31.3, "total_nonreg": 8156, "est_k": 2552.8}, {"year": 2023, "dim": "연령계층별", "item": "60세이상", "pct": 32.2, "total_nonreg": 8122, "est_k": 2615.3}, {"year": 2024, "dim": "연령계층별", "item": "60세이상", "pct": 33.2, "total_nonreg": 8459, "est_k": 2808.4}, {"year": 2025, "dim": "연령계층별", "item": "60세이상", "pct": 35.5, "total_nonreg": 8568, "est_k": 3041.6}, {"year": 2026, "dim": "연령계층별", "item": "60세이상", "pct": 36.7, "total_nonreg": 8671, "est_k": 3182.3}, {"year": 2019, "dim": "산업별", "item": "농림어업", "pct": 1, "total_nonreg": 7481, "est_k": 74.8}, {"year": 2020, "dim": "산업별", "item": "농림어업", "pct": 1, "total_nonreg": 7426, "est_k": 74.3}, {"year": 2021, "dim": "산업별", "item": "농림어업", "pct": 1, "total_nonreg": 8066, "est_k": 80.7}, {"year": 2022, "dim": "산업별", "item": "농림어업", "pct": 0.8, "total_nonreg": 8156, "est_k": 65.2}, {"year": 2023, "dim": "산업별", "item": "농림어업", "pct": 0.8, "total_nonreg": 8122, "est_k": 65.0}, {"year": 2024, "dim": "산업별", "item": "농림어업", "pct": 0.7, "total_nonreg": 8459, "est_k": 59.2}, {"year": 2025, "dim": "산업별", "item": "농림어업", "pct": 0.7, "total_nonreg": 8568, "est_k": 60.0}, {"year": 2026, "dim": "산업별", "item": "농림어업", "pct": 0.6, "total_nonreg": 8671, "est_k": 52.0}, {"year": 2019, "dim": "산업별", "item": "제조업", "pct": 8.9, "total_nonreg": 7481, "est_k": 665.8}, {"year": 2020, "dim": "산업별", "item": "제조업", "pct": 8.1, "total_nonreg": 7426, "est_k": 601.5}, {"year": 2021, "dim": "산업별", "item": "제조업", "pct": 7.8, "total_nonreg": 8066, "est_k": 629.1}, {"year": 2022, "dim": "산업별", "item": "제조업", "pct": 8.1, "total_nonreg": 8156, "est_k": 660.6}, {"year": 2023, "dim": "산업별", "item": "제조업", "pct": 8, "total_nonreg": 8122, "est_k": 649.8}, {"year": 2024, "dim": "산업별", "item": "제조업", "pct": 8.1, "total_nonreg": 8459, "est_k": 685.2}, {"year": 2025, "dim": "산업별", "item": "제조업", "pct": 7.7, "total_nonreg": 8568, "est_k": 659.7}, {"year": 2026, "dim": "산업별", "item": "제조업", "pct": 7.7, "total_nonreg": 8671, "est_k": 667.7}, {"year": 2019, "dim": "산업별", "item": "건설업", "pct": 11.4, "total_nonreg": 7481, "est_k": 852.8}, {"year": 2020, "dim": "산업별", "item": "건설업", "pct": 11.6, "total_nonreg": 7426, "est_k": 861.4}, {"year": 2021, "dim": "산업별", "item": "건설업", "pct": 11, "total_nonreg": 8066, "est_k": 887.3}, {"year": 2022, "dim": "산업별", "item": "건설업", "pct": 10.4, "total_nonreg": 8156, "est_k": 848.2}, {"year": 2023, "dim": "산업별", "item": "건설업", "pct": 9.2, "total_nonreg": 8122, "est_k": 747.2}, {"year": 2024, "dim": "산업별", "item": "건설업", "pct": 8.7, "total_nonreg": 8459, "est_k": 735.9}, {"year": 2025, "dim": "산업별", "item": "건설업", "pct": 8, "total_nonreg": 8568, "est_k": 685.4}, {"year": 2026, "dim": "산업별", "item": "건설업", "pct": 7.8, "total_nonreg": 8671, "est_k": 676.3}, {"year": 2019, "dim": "산업별", "item": "도소매업", "pct": 9.4, "total_nonreg": 7481, "est_k": 703.2}, {"year": 2020, "dim": "산업별", "item": "도소매업", "pct": 9.7, "total_nonreg": 7426, "est_k": 720.3}, {"year": 2021, "dim": "산업별", "item": "도소매업", "pct": 9.3, "total_nonreg": 8066, "est_k": 750.1}, {"year": 2022, "dim": "산업별", "item": "도소매업", "pct": 9.2, "total_nonreg": 8156, "est_k": 750.4}, {"year": 2023, "dim": "산업별", "item": "도소매업", "pct": 8.7, "total_nonreg": 8122, "est_k": 706.6}, {"year": 2024, "dim": "산업별", "item": "도소매업", "pct": 8.8, "total_nonreg": 8459, "est_k": 744.4}, {"year": 2025, "dim": "산업별", "item": "도소매업", "pct": 8.2, "total_nonreg": 8568, "est_k": 702.6}, {"year": 2026, "dim": "산업별", "item": "도소매업", "pct": 8.1, "total_nonreg": 8671, "est_k": 702.4}, {"year": 2019, "dim": "산업별", "item": "운수창고업", "pct": 2.9, "total_nonreg": 7481, "est_k": 216.9}, {"year": 2020, "dim": "산업별", "item": "운수창고업", "pct": 3.1, "total_nonreg": 7426, "est_k": 230.2}, {"year": 2021, "dim": "산업별", "item": "운수창고업", "pct": 3.3, "total_nonreg": 8066, "est_k": 266.2}, {"year": 2022, "dim": "산업별", "item": "운수창고업", "pct": 3.1, "total_nonreg": 8156, "est_k": 252.8}, {"year": 2023, "dim": "산업별", "item": "운수창고업", "pct": 3.3, "total_nonreg": 8122, "est_k": 268.0}, {"year": 2024, "dim": "산업별", "item": "운수창고업", "pct": 3.6, "total_nonreg": 8459, "est_k": 304.5}, {"year": 2025, "dim": "산업별", "item": "운수창고업", "pct": 4, "total_nonreg": 8568, "est_k": 342.7}, {"year": 2026, "dim": "산업별", "item": "운수창고업", "pct": 4, "total_nonreg": 8671, "est_k": 346.8}, {"year": 2019, "dim": "산업별", "item": "숙박음식업", "pct": 10.2, "total_nonreg": 7481, "est_k": 763.1}, {"year": 2020, "dim": "산업별", "item": "숙박음식업", "pct": 9.3, "total_nonreg": 7426, "est_k": 690.6}, {"year": 2021, "dim": "산업별", "item": "숙박음식업", "pct": 8.6, "total_nonreg": 8066, "est_k": 693.7}, {"year": 2022, "dim": "산업별", "item": "숙박음식업", "pct": 9.5, "total_nonreg": 8156, "est_k": 774.8}, {"year": 2023, "dim": "산업별", "item": "숙박음식업", "pct": 9.7, "total_nonreg": 8122, "est_k": 787.8}, {"year": 2024, "dim": "산업별", "item": "숙박음식업", "pct": 10.3, "total_nonreg": 8459, "est_k": 871.3}, {"year": 2025, "dim": "산업별", "item": "숙박음식업", "pct": 9.5, "total_nonreg": 8568, "est_k": 814.0}, {"year": 2026, "dim": "산업별", "item": "숙박음식업", "pct": 9.9, "total_nonreg": 8671, "est_k": 858.4}, {"year": 2019, "dim": "산업별", "item": "정보통신업", "pct": 1.7, "total_nonreg": 7481, "est_k": 127.2}, {"year": 2020, "dim": "산업별", "item": "정보통신업", "pct": 1.6, "total_nonreg": 7426, "est_k": 118.8}, {"year": 2021, "dim": "산업별", "item": "정보통신업", "pct": 2.3, "total_nonreg": 8066, "est_k": 185.5}, {"year": 2022, "dim": "산업별", "item": "정보통신업", "pct": 2.5, "total_nonreg": 8156, "est_k": 203.9}, {"year": 2023, "dim": "산업별", "item": "정보통신업", "pct": 2.4, "total_nonreg": 8122, "est_k": 194.9}, {"year": 2024, "dim": "산업별", "item": "정보통신업", "pct": 2.4, "total_nonreg": 8459, "est_k": 203.0}, {"year": 2025, "dim": "산업별", "item": "정보통신업", "pct": 2.6, "total_nonreg": 8568, "est_k": 222.8}, {"year": 2026, "dim": "산업별", "item": "정보통신업", "pct": 2.3, "total_nonreg": 8671, "est_k": 199.4}, {"year": 2019, "dim": "산업별", "item": "금융보험업", "pct": 3.7, "total_nonreg": 7481, "est_k": 276.8}, {"year": 2020, "dim": "산업별", "item": "금융보험업", "pct": 3.4, "total_nonreg": 7426, "est_k": 252.5}, {"year": 2021, "dim": "산업별", "item": "금융보험업", "pct": 3.7, "total_nonreg": 8066, "est_k": 298.4}, {"year": 2022, "dim": "산업별", "item": "금융보험업", "pct": 3.9, "total_nonreg": 8156, "est_k": 318.1}, {"year": 2023, "dim": "산업별", "item": "금융보험업", "pct": 3.8, "total_nonreg": 8122, "est_k": 308.6}, {"year": 2024, "dim": "산업별", "item": "금융보험업", "pct": 3.7, "total_nonreg": 8459, "est_k": 313.0}, {"year": 2025, "dim": "산업별", "item": "금융보험업", "pct": 3.8, "total_nonreg": 8568, "est_k": 325.6}, {"year": 2026, "dim": "산업별", "item": "금융보험업", "pct": 4.1, "total_nonreg": 8671, "est_k": 355.5}, {"year": 2019, "dim": "산업별", "item": "부동산업", "pct": 2.6, "total_nonreg": 7481, "est_k": 194.5}, {"year": 2020, "dim": "산업별", "item": "부동산업", "pct": 2.4, "total_nonreg": 7426, "est_k": 178.2}, {"year": 2021, "dim": "산업별", "item": "부동산업", "pct": 2.6, "total_nonreg": 8066, "est_k": 209.7}, {"year": 2022, "dim": "산업별", "item": "부동산업", "pct": 2.7, "total_nonreg": 8156, "est_k": 220.2}, {"year": 2023, "dim": "산업별", "item": "부동산업", "pct": 2.6, "total_nonreg": 8122, "est_k": 211.2}, {"year": 2024, "dim": "산업별", "item": "부동산업", "pct": 2.2, "total_nonreg": 8459, "est_k": 186.1}, {"year": 2025, "dim": "산업별", "item": "부동산업", "pct": 2.4, "total_nonreg": 8568, "est_k": 205.6}, {"year": 2026, "dim": "산업별", "item": "부동산업", "pct": 2.1, "total_nonreg": 8671, "est_k": 182.1}, {"year": 2019, "dim": "산업별", "item": "전문과학기술업", "pct": 2.6, "total_nonreg": 7481, "est_k": 194.5}, {"year": 2020, "dim": "산업별", "item": "전문과학기술업", "pct": 2.4, "total_nonreg": 7426, "est_k": 178.2}, {"year": 2021, "dim": "산업별", "item": "전문과학기술업", "pct": 2.6, "total_nonreg": 8066, "est_k": 209.7}, {"year": 2022, "dim": "산업별", "item": "전문과학기술업", "pct": 2.3, "total_nonreg": 8156, "est_k": 187.6}, {"year": 2023, "dim": "산업별", "item": "전문과학기술업", "pct": 2.7, "total_nonreg": 8122, "est_k": 219.3}, {"year": 2024, "dim": "산업별", "item": "전문과학기술업", "pct": 3.1, "total_nonreg": 8459, "est_k": 262.2}, {"year": 2025, "dim": "산업별", "item": "전문과학기술업", "pct": 2.9, "total_nonreg": 8568, "est_k": 248.5}, {"year": 2026, "dim": "산업별", "item": "전문과학기술업", "pct": 2.9, "total_nonreg": 8671, "est_k": 251.5}, {"year": 2019, "dim": "산업별", "item": "사업시설지원업", "pct": 11.6, "total_nonreg": 7481, "est_k": 867.8}, {"year": 2020, "dim": "산업별", "item": "사업시설지원업", "pct": 11.1, "total_nonreg": 7426, "est_k": 824.3}, {"year": 2021, "dim": "산업별", "item": "사업시설지원업", "pct": 11, "total_nonreg": 8066, "est_k": 887.3}, {"year": 2022, "dim": "산업별", "item": "사업시설지원업", "pct": 10.7, "total_nonreg": 8156, "est_k": 872.7}, {"year": 2023, "dim": "산업별", "item": "사업시설지원업", "pct": 10.7, "total_nonreg": 8122, "est_k": 869.1}, {"year": 2024, "dim": "산업별", "item": "사업시설지원업", "pct": 10.2, "total_nonreg": 8459, "est_k": 862.8}, {"year": 2025, "dim": "산업별", "item": "사업시설지원업", "pct": 10.1, "total_nonreg": 8568, "est_k": 865.4}, {"year": 2026, "dim": "산업별", "item": "사업시설지원업", "pct": 9.8, "total_nonreg": 8671, "est_k": 849.8}, {"year": 2019, "dim": "산업별", "item": "공공행정", "pct": 5, "total_nonreg": 7481, "est_k": 374.1}, {"year": 2020, "dim": "산업별", "item": "공공행정", "pct": 5.6, "total_nonreg": 7426, "est_k": 415.9}, {"year": 2021, "dim": "산업별", "item": "공공행정", "pct": 4.9, "total_nonreg": 8066, "est_k": 395.2}, {"year": 2022, "dim": "산업별", "item": "공공행정", "pct": 4.7, "total_nonreg": 8156, "est_k": 383.3}, {"year": 2023, "dim": "산업별", "item": "공공행정", "pct": 4.8, "total_nonreg": 8122, "est_k": 389.9}, {"year": 2024, "dim": "산업별", "item": "공공행정", "pct": 4.9, "total_nonreg": 8459, "est_k": 414.5}, {"year": 2025, "dim": "산업별", "item": "공공행정", "pct": 4.6, "total_nonreg": 8568, "est_k": 394.1}, {"year": 2026, "dim": "산업별", "item": "공공행정", "pct": 4.3, "total_nonreg": 8671, "est_k": 372.9}, {"year": 2019, "dim": "산업별", "item": "교육서비스", "pct": 8.4, "total_nonreg": 7481, "est_k": 628.4}, {"year": 2020, "dim": "산업별", "item": "교육서비스", "pct": 7.9, "total_nonreg": 7426, "est_k": 586.7}, {"year": 2021, "dim": "산업별", "item": "교육서비스", "pct": 8.3, "total_nonreg": 8066, "est_k": 669.5}, {"year": 2022, "dim": "산업별", "item": "교육서비스", "pct": 8.6, "total_nonreg": 8156, "est_k": 701.4}, {"year": 2023, "dim": "산업별", "item": "교육서비스", "pct": 8.4, "total_nonreg": 8122, "est_k": 682.2}, {"year": 2024, "dim": "산업별", "item": "교육서비스", "pct": 8.3, "total_nonreg": 8459, "est_k": 702.1}, {"year": 2025, "dim": "산업별", "item": "교육서비스", "pct": 8.3, "total_nonreg": 8568, "est_k": 711.1}, {"year": 2026, "dim": "산업별", "item": "교육서비스", "pct": 8, "total_nonreg": 8671, "est_k": 693.7}, {"year": 2019, "dim": "산업별", "item": "보건사회복지업", "pct": 13.1, "total_nonreg": 7481, "est_k": 980.0}, {"year": 2020, "dim": "산업별", "item": "보건사회복지업", "pct": 15.2, "total_nonreg": 7426, "est_k": 1128.8}, {"year": 2021, "dim": "산업별", "item": "보건사회복지업", "pct": 16.8, "total_nonreg": 8066, "est_k": 1355.1}, {"year": 2022, "dim": "산업별", "item": "보건사회복지업", "pct": 17, "total_nonreg": 8156, "est_k": 1386.5}, {"year": 2023, "dim": "산업별", "item": "보건사회복지업", "pct": 18.4, "total_nonreg": 8122, "est_k": 1494.4}, {"year": 2024, "dim": "산업별", "item": "보건사회복지업", "pct": 18.3, "total_nonreg": 8459, "est_k": 1548.0}, {"year": 2025, "dim": "산업별", "item": "보건사회복지업", "pct": 20.5, "total_nonreg": 8568, "est_k": 1756.4}, {"year": 2026, "dim": "산업별", "item": "보건사회복지업", "pct": 21.5, "total_nonreg": 8671, "est_k": 1864.3}, {"year": 2019, "dim": "산업별", "item": "예술스포츠", "pct": 2.6, "total_nonreg": 7481, "est_k": 194.5}, {"year": 2020, "dim": "산업별", "item": "예술스포츠", "pct": 2.4, "total_nonreg": 7426, "est_k": 178.2}, {"year": 2021, "dim": "산업별", "item": "예술스포츠", "pct": 2.2, "total_nonreg": 8066, "est_k": 177.5}, {"year": 2022, "dim": "산업별", "item": "예술스포츠", "pct": 2.3, "total_nonreg": 8156, "est_k": 187.6}, {"year": 2023, "dim": "산업별", "item": "예술스포츠", "pct": 2.6, "total_nonreg": 8122, "est_k": 211.2}, {"year": 2024, "dim": "산업별", "item": "예술스포츠", "pct": 2.4, "total_nonreg": 8459, "est_k": 203.0}, {"year": 2025, "dim": "산업별", "item": "예술스포츠", "pct": 2.4, "total_nonreg": 8568, "est_k": 205.6}, {"year": 2026, "dim": "산업별", "item": "예술스포츠", "pct": 2.8, "total_nonreg": 8671, "est_k": 242.8}, {"year": 2019, "dim": "산업별", "item": "협회기타서비스", "pct": 3.3, "total_nonreg": 7481, "est_k": 246.9}, {"year": 2020, "dim": "산업별", "item": "협회기타서비스", "pct": 3.2, "total_nonreg": 7426, "est_k": 237.6}, {"year": 2021, "dim": "산업별", "item": "협회기타서비스", "pct": 3, "total_nonreg": 8066, "est_k": 242.0}, {"year": 2022, "dim": "산업별", "item": "협회기타서비스", "pct": 3, "total_nonreg": 8156, "est_k": 244.7}, {"year": 2023, "dim": "산업별", "item": "협회기타서비스", "pct": 2.9, "total_nonreg": 8122, "est_k": 235.5}, {"year": 2024, "dim": "산업별", "item": "협회기타서비스", "pct": 3.2, "total_nonreg": 8459, "est_k": 270.7}, {"year": 2025, "dim": "산업별", "item": "협회기타서비스", "pct": 3.1, "total_nonreg": 8568, "est_k": 265.6}, {"year": 2026, "dim": "산업별", "item": "협회기타서비스", "pct": 3, "total_nonreg": 8671, "est_k": 260.1}, {"year": 2019, "dim": "산업별", "item": "기타", "pct": 1.5, "total_nonreg": 7481, "est_k": 112.2}, {"year": 2020, "dim": "산업별", "item": "기타", "pct": 1.8, "total_nonreg": 7426, "est_k": 133.7}, {"year": 2021, "dim": "산업별", "item": "기타", "pct": 1.5, "total_nonreg": 8066, "est_k": 121.0}, {"year": 2022, "dim": "산업별", "item": "기타", "pct": 1.3, "total_nonreg": 8156, "est_k": 106.0}, {"year": 2023, "dim": "산업별", "item": "기타", "pct": 1.2, "total_nonreg": 8122, "est_k": 97.5}, {"year": 2024, "dim": "산업별", "item": "기타", "pct": 1.1, "total_nonreg": 8459, "est_k": 93.0}, {"year": 2025, "dim": "산업별", "item": "기타", "pct": 1.2, "total_nonreg": 8568, "est_k": 102.8}, {"year": 2026, "dim": "산업별", "item": "기타", "pct": 1.1, "total_nonreg": 8671, "est_k": 95.4}, {"year": 2019, "dim": "직업별", "item": "관리자·전문가", "pct": 16.2, "total_nonreg": 7481, "est_k": 1211.9}, {"year": 2020, "dim": "직업별", "item": "관리자·전문가", "pct": 15.2, "total_nonreg": 7426, "est_k": 1128.8}, {"year": 2021, "dim": "직업별", "item": "관리자·전문가", "pct": 16.3, "total_nonreg": 8066, "est_k": 1314.8}, {"year": 2022, "dim": "직업별", "item": "관리자·전문가", "pct": 16.6, "total_nonreg": 8156, "est_k": 1353.9}, {"year": 2023, "dim": "직업별", "item": "관리자·전문가", "pct": 17.4, "total_nonreg": 8122, "est_k": 1413.2}, {"year": 2024, "dim": "직업별", "item": "관리자·전문가", "pct": 17.2, "total_nonreg": 8459, "est_k": 1454.9}, {"year": 2025, "dim": "직업별", "item": "관리자·전문가", "pct": 17.7, "total_nonreg": 8568, "est_k": 1516.5}, {"year": 2026, "dim": "직업별", "item": "관리자·전문가", "pct": 17.7, "total_nonreg": 8671, "est_k": 1534.8}, {"year": 2019, "dim": "직업별", "item": "사무 종사자", "pct": 11.4, "total_nonreg": 7481, "est_k": 852.8}, {"year": 2020, "dim": "직업별", "item": "사무 종사자", "pct": 10.6, "total_nonreg": 7426, "est_k": 787.2}, {"year": 2021, "dim": "직업별", "item": "사무 종사자", "pct": 10.7, "total_nonreg": 8066, "est_k": 863.1}, {"year": 2022, "dim": "직업별", "item": "사무 종사자", "pct": 10.4, "total_nonreg": 8156, "est_k": 848.2}, {"year": 2023, "dim": "직업별", "item": "사무 종사자", "pct": 10.6, "total_nonreg": 8122, "est_k": 860.9}, {"year": 2024, "dim": "직업별", "item": "사무 종사자", "pct": 10.4, "total_nonreg": 8459, "est_k": 879.7}, {"year": 2025, "dim": "직업별", "item": "사무 종사자", "pct": 10.7, "total_nonreg": 8568, "est_k": 916.8}, {"year": 2026, "dim": "직업별", "item": "사무 종사자", "pct": 10.4, "total_nonreg": 8671, "est_k": 901.8}, {"year": 2019, "dim": "직업별", "item": "서비스·판매 종사자", "pct": 26, "total_nonreg": 7481, "est_k": 1945.1}, {"year": 2020, "dim": "직업별", "item": "서비스·판매 종사자", "pct": 25.4, "total_nonreg": 7426, "est_k": 1886.2}, {"year": 2021, "dim": "직업별", "item": "서비스·판매 종사자", "pct": 24.4, "total_nonreg": 8066, "est_k": 1968.1}, {"year": 2022, "dim": "직업별", "item": "서비스·판매 종사자", "pct": 25.4, "total_nonreg": 8156, "est_k": 2071.6}, {"year": 2023, "dim": "직업별", "item": "서비스·판매 종사자", "pct": 26.7, "total_nonreg": 8122, "est_k": 2168.6}, {"year": 2024, "dim": "직업별", "item": "서비스·판매 종사자", "pct": 26.8, "total_nonreg": 8459, "est_k": 2267.0}, {"year": 2025, "dim": "직업별", "item": "서비스·판매 종사자", "pct": 26.3, "total_nonreg": 8568, "est_k": 2253.4}, {"year": 2026, "dim": "직업별", "item": "서비스·판매 종사자", "pct": 27.1, "total_nonreg": 8671, "est_k": 2349.8}, {"year": 2019, "dim": "직업별", "item": "농림어업 숙련종사자", "pct": 0.5, "total_nonreg": 7481, "est_k": 37.4}, {"year": 2020, "dim": "직업별", "item": "농림어업 숙련종사자", "pct": 0.5, "total_nonreg": 7426, "est_k": 37.1}, {"year": 2021, "dim": "직업별", "item": "농림어업 숙련종사자", "pct": 0.4, "total_nonreg": 8066, "est_k": 32.3}, {"year": 2022, "dim": "직업별", "item": "농림어업 숙련종사자", "pct": 0.4, "total_nonreg": 8156, "est_k": 32.6}, {"year": 2023, "dim": "직업별", "item": "농림어업 숙련종사자", "pct": 0.4, "total_nonreg": 8122, "est_k": 32.5}, {"year": 2024, "dim": "직업별", "item": "농림어업 숙련종사자", "pct": 0.6, "total_nonreg": 8459, "est_k": 50.8}, {"year": 2025, "dim": "직업별", "item": "농림어업 숙련종사자", "pct": 0.5, "total_nonreg": 8568, "est_k": 42.8}, {"year": 2026, "dim": "직업별", "item": "농림어업 숙련종사자", "pct": 0.6, "total_nonreg": 8671, "est_k": 52.0}, {"year": 2019, "dim": "직업별", "item": "기능·기계조작 종사자", "pct": 14.9, "total_nonreg": 7481, "est_k": 1114.7}, {"year": 2020, "dim": "직업별", "item": "기능·기계조작 종사자", "pct": 14.8, "total_nonreg": 7426, "est_k": 1099.0}, {"year": 2021, "dim": "직업별", "item": "기능·기계조작 종사자", "pct": 14.5, "total_nonreg": 8066, "est_k": 1169.6}, {"year": 2022, "dim": "직업별", "item": "기능·기계조작 종사자", "pct": 13.8, "total_nonreg": 8156, "est_k": 1125.5}, {"year": 2023, "dim": "직업별", "item": "기능·기계조작 종사자", "pct": 13.2, "total_nonreg": 8122, "est_k": 1072.1}, {"year": 2024, "dim": "직업별", "item": "기능·기계조작 종사자", "pct": 12.4, "total_nonreg": 8459, "est_k": 1048.9}, {"year": 2025, "dim": "직업별", "item": "기능·기계조작 종사자", "pct": 13, "total_nonreg": 8568, "est_k": 1113.8}, {"year": 2026, "dim": "직업별", "item": "기능·기계조작 종사자", "pct": 12.6, "total_nonreg": 8671, "est_k": 1092.5}, {"year": 2019, "dim": "직업별", "item": "단순노무 종사자", "pct": 31, "total_nonreg": 7481, "est_k": 2319.1}, {"year": 2020, "dim": "직업별", "item": "단순노무 종사자", "pct": 33.5, "total_nonreg": 7426, "est_k": 2487.7}, {"year": 2021, "dim": "직업별", "item": "단순노무 종사자", "pct": 33.7, "total_nonreg": 8066, "est_k": 2718.2}, {"year": 2022, "dim": "직업별", "item": "단순노무 종사자", "pct": 33.3, "total_nonreg": 8156, "est_k": 2715.9}, {"year": 2023, "dim": "직업별", "item": "단순노무 종사자", "pct": 31.7, "total_nonreg": 8122, "est_k": 2574.7}, {"year": 2024, "dim": "직업별", "item": "단순노무 종사자", "pct": 32.7, "total_nonreg": 8459, "est_k": 2766.1}, {"year": 2025, "dim": "직업별", "item": "단순노무 종사자", "pct": 31.9, "total_nonreg": 8568, "est_k": 2733.2}, {"year": 2026, "dim": "직업별", "item": "단순노무 종사자", "pct": 31.7, "total_nonreg": 8671, "est_k": 2748.7}], "conds": [{"year": 2019, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "임금근로자", "unit": "개월", "value": 71}, {"year": 2020, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "임금근로자", "unit": "개월", "value": 72}, {"year": 2021, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "임금근로자", "unit": "개월", "value": 70}, {"year": 2022, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "임금근로자", "unit": "개월", "value": 72}, {"year": 2023, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "임금근로자", "unit": "개월", "value": 74}, {"year": 2024, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "임금근로자", "unit": "개월", "value": 76}, {"year": 2025, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "임금근로자", "unit": "개월", "value": 78}, {"year": 2026, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "임금근로자", "unit": "개월", "value": 80}, {"year": 2019, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "정규직", "unit": "개월", "value": 94}, {"year": 2020, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "정규직", "unit": "개월", "value": 97}, {"year": 2021, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "정규직", "unit": "개월", "value": 96}, {"year": 2022, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "정규직", "unit": "개월", "value": 97}, {"year": 2023, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "정규직", "unit": "개월", "value": 98}, {"year": 2024, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "정규직", "unit": "개월", "value": 103}, {"year": 2025, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "정규직", "unit": "개월", "value": 105}, {"year": 2026, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "정규직", "unit": "개월", "value": 108}, {"year": 2019, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "비정규직", "unit": "개월", "value": 29}, {"year": 2020, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "비정규직", "unit": "개월", "value": 29}, {"year": 2021, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "비정규직", "unit": "개월", "value": 29}, {"year": 2022, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "비정규직", "unit": "개월", "value": 30}, {"year": 2023, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "비정규직", "unit": "개월", "value": 32}, {"year": 2024, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "비정규직", "unit": "개월", "value": 34}, {"year": 2025, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "비정규직", "unit": "개월", "value": 35}, {"year": 2026, "group": "근무여건", "indicator": "평균 근속기간", "emp_type": "비정규직", "unit": "개월", "value": 36}, {"year": 2019, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "임금근로자", "unit": "시간", "value": 35.9}, {"year": 2020, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "임금근로자", "unit": "시간", "value": 37.1}, {"year": 2021, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "임금근로자", "unit": "시간", "value": 35.4}, {"year": 2022, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "임금근로자", "unit": "시간", "value": 34.7}, {"year": 2023, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "임금근로자", "unit": "시간", "value": 33.9}, {"year": 2024, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "임금근로자", "unit": "시간", "value": 32.4}, {"year": 2025, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "임금근로자", "unit": "시간", "value": 33.4}, {"year": 2026, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "임금근로자", "unit": "시간", "value": 36.2}, {"year": 2019, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "정규직", "unit": "시간", "value": 38.8}, {"year": 2020, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "정규직", "unit": "시간", "value": 40.7}, {"year": 2021, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "정규직", "unit": "시간", "value": 38.7}, {"year": 2022, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "정규직", "unit": "시간", "value": 37.8}, {"year": 2023, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "정규직", "unit": "시간", "value": 36.9}, {"year": 2024, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "정규직", "unit": "시간", "value": 35.4}, {"year": 2025, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "정규직", "unit": "시간", "value": 36.5}, {"year": 2026, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "정규직", "unit": "시간", "value": 40.4}, {"year": 2019, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "비정규직", "unit": "시간", "value": 30.8}, {"year": 2020, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "비정규직", "unit": "시간", "value": 30.7}, {"year": 2021, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "비정규직", "unit": "시간", "value": 30.2}, {"year": 2022, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "비정규직", "unit": "시간", "value": 29.6}, {"year": 2023, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "비정규직", "unit": "시간", "value": 28.7}, {"year": 2024, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "비정규직", "unit": "시간", "value": 27.6}, {"year": 2025, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "비정규직", "unit": "시간", "value": 28.2}, {"year": 2026, "group": "근무여건", "indicator": "평균 취업시간", "emp_type": "비정규직", "unit": "시간", "value": 29.5}, {"year": 2019, "group": "임금", "indicator": "월평균임금", "emp_type": "임금근로자", "unit": "만원", "value": 264.3}, {"year": 2020, "group": "임금", "indicator": "월평균임금", "emp_type": "임금근로자", "unit": "만원", "value": 268.1}, {"year": 2021, "group": "임금", "indicator": "월평균임금", "emp_type": "임금근로자", "unit": "만원", "value": 273.4}, {"year": 2022, "group": "임금", "indicator": "월평균임금", "emp_type": "임금근로자", "unit": "만원", "value": 288}, {"year": 2023, "group": "임금", "indicator": "월평균임금", "emp_type": "임금근로자", "unit": "만원", "value": 300.7}, {"year": 2024, "group": "임금", "indicator": "월평균임금", "emp_type": "임금근로자", "unit": "만원", "value": 312.8}, {"year": 2025, "group": "임금", "indicator": "월평균임금", "emp_type": "임금근로자", "unit": "만원", "value": 320.5}, {"year": 2026, "group": "임금", "indicator": "월평균임금", "emp_type": "임금근로자", "unit": "만원", "value": 330.5}, {"year": 2019, "group": "임금", "indicator": "월평균임금", "emp_type": "정규직", "unit": "만원", "value": 316.5}, {"year": 2020, "group": "임금", "indicator": "월평균임금", "emp_type": "정규직", "unit": "만원", "value": 323.4}, {"year": 2021, "group": "임금", "indicator": "월평균임금", "emp_type": "정규직", "unit": "만원", "value": 333.6}, {"year": 2022, "group": "임금", "indicator": "월평균임금", "emp_type": "정규직", "unit": "만원", "value": 348}, {"year": 2023, "group": "임금", "indicator": "월평균임금", "emp_type": "정규직", "unit": "만원", "value": 362.3}, {"year": 2024, "group": "임금", "indicator": "월평균임금", "emp_type": "정규직", "unit": "만원", "value": 379.6}, {"year": 2025, "group": "임금", "indicator": "월평균임금", "emp_type": "정규직", "unit": "만원", "value": 389.6}, {"year": 2026, "group": "임금", "indicator": "월평균임금", "emp_type": "정규직", "unit": "만원", "value": 405.2}, {"year": 2019, "group": "임금", "indicator": "월평균임금", "emp_type": "비정규직", "unit": "만원", "value": 172.9}, {"year": 2020, "group": "임금", "indicator": "월평균임금", "emp_type": "비정규직", "unit": "만원", "value": 171.1}, {"year": 2021, "group": "임금", "indicator": "월평균임금", "emp_type": "비정규직", "unit": "만원", "value": 176.9}, {"year": 2022, "group": "임금", "indicator": "월평균임금", "emp_type": "비정규직", "unit": "만원", "value": 188.1}, {"year": 2023, "group": "임금", "indicator": "월평균임금", "emp_type": "비정규직", "unit": "만원", "value": 195.7}, {"year": 2024, "group": "임금", "indicator": "월평균임금", "emp_type": "비정규직", "unit": "만원", "value": 204.8}, {"year": 2025, "group": "임금", "indicator": "월평균임금", "emp_type": "비정규직", "unit": "만원", "value": 208.8}, {"year": 2026, "group": "임금", "indicator": "월평균임금", "emp_type": "비정규직", "unit": "만원", "value": 211.2}, {"year": 2019, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "임금근로자", "unit": "%", "value": 69.5}, {"year": 2020, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "임금근로자", "unit": "%", "value": 69.8}, {"year": 2021, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "임금근로자", "unit": "%", "value": 69.4}, {"year": 2022, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "임금근로자", "unit": "%", "value": 70}, {"year": 2023, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "임금근로자", "unit": "%", "value": 69.6}, {"year": 2024, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "임금근로자", "unit": "%", "value": 68.8}, {"year": 2025, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "임금근로자", "unit": "%", "value": 68.5}, {"year": 2026, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "임금근로자", "unit": "%", "value": 68.5}, {"year": 2019, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "정규직", "unit": "%", "value": 87.5}, {"year": 2020, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "정규직", "unit": "%", "value": 88}, {"year": 2021, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "정규직", "unit": "%", "value": 88.8}, {"year": 2022, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "정규직", "unit": "%", "value": 89.1}, {"year": 2023, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "정규직", "unit": "%", "value": 88}, {"year": 2024, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "정규직", "unit": "%", "value": 88.1}, {"year": 2025, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "정규직", "unit": "%", "value": 87.9}, {"year": 2026, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "정규직", "unit": "%", "value": 88.6}, {"year": 2019, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "비정규직", "unit": "%", "value": 37.9}, {"year": 2020, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "비정규직", "unit": "%", "value": 37.8}, {"year": 2021, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "비정규직", "unit": "%", "value": 38.4}, {"year": 2022, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "비정규직", "unit": "%", "value": 38.3}, {"year": 2023, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "비정규직", "unit": "%", "value": 38.4}, {"year": 2024, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "비정규직", "unit": "%", "value": 37.5}, {"year": 2025, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "비정규직", "unit": "%", "value": 37.1}, {"year": 2026, "group": "사회보험", "indicator": "국민연금 가입률", "emp_type": "비정규직", "unit": "%", "value": 36.5}, {"year": 2019, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 75.7}, {"year": 2020, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 76.7}, {"year": 2021, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 77}, {"year": 2022, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 78.5}, {"year": 2023, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 78.9}, {"year": 2024, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 78.6}, {"year": 2025, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 79}, {"year": 2026, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 79.3}, {"year": 2019, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "정규직", "unit": "%", "value": 91.5}, {"year": 2020, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "정규직", "unit": "%", "value": 92.6}, {"year": 2021, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "정규직", "unit": "%", "value": 93.6}, {"year": 2022, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "정규직", "unit": "%", "value": 94.5}, {"year": 2023, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "정규직", "unit": "%", "value": 94.3}, {"year": 2024, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "정규직", "unit": "%", "value": 95}, {"year": 2025, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "정규직", "unit": "%", "value": 95}, {"year": 2026, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "정규직", "unit": "%", "value": 95.7}, {"year": 2019, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 48}, {"year": 2020, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 49}, {"year": 2021, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 50.3}, {"year": 2022, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 51.7}, {"year": 2023, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 52.6}, {"year": 2024, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 52.2}, {"year": 2025, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 53.2}, {"year": 2026, "group": "사회보험", "indicator": "건강보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 53}, {"year": 2019, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 70.9}, {"year": 2020, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 72.6}, {"year": 2021, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 75.2}, {"year": 2022, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 77}, {"year": 2023, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 77}, {"year": 2024, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 77}, {"year": 2025, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 76.2}, {"year": 2026, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "임금근로자", "unit": "%", "value": 77}, {"year": 2019, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "정규직", "unit": "%", "value": 87.2}, {"year": 2020, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "정규직", "unit": "%", "value": 89.2}, {"year": 2021, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "정규직", "unit": "%", "value": 90.9}, {"year": 2022, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "정규직", "unit": "%", "value": 92.2}, {"year": 2023, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "정규직", "unit": "%", "value": 91.9}, {"year": 2024, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "정규직", "unit": "%", "value": 92.3}, {"year": 2025, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "정규직", "unit": "%", "value": 91.8}, {"year": 2026, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "정규직", "unit": "%", "value": 93}, {"year": 2019, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 44.9}, {"year": 2020, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 46.1}, {"year": 2021, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 52.6}, {"year": 2022, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 54}, {"year": 2023, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 54.2}, {"year": 2024, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 54.7}, {"year": 2025, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 53.7}, {"year": 2026, "group": "사회보험", "indicator": "고용보험 가입률", "emp_type": "비정규직", "unit": "%", "value": 54}, {"year": 2019, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 74}, {"year": 2020, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 73.2}, {"year": 2021, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 74}, {"year": 2022, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 74.9}, {"year": 2023, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 76.3}, {"year": 2024, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 76.8}, {"year": 2025, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 76.6}, {"year": 2026, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 76.7}, {"year": 2019, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "정규직", "unit": "%", "value": 91.7}, {"year": 2020, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "정규직", "unit": "%", "value": 91.9}, {"year": 2021, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "정규직", "unit": "%", "value": 93.5}, {"year": 2022, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "정규직", "unit": "%", "value": 94}, {"year": 2023, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "정규직", "unit": "%", "value": 94.5}, {"year": 2024, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "정규직", "unit": "%", "value": 95.6}, {"year": 2025, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "정규직", "unit": "%", "value": 95.6}, {"year": 2026, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "정규직", "unit": "%", "value": 96.2}, {"year": 2019, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "비정규직", "unit": "%", "value": 42.9}, {"year": 2020, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "비정규직", "unit": "%", "value": 40.4}, {"year": 2021, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "비정규직", "unit": "%", "value": 42.7}, {"year": 2022, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "비정규직", "unit": "%", "value": 43}, {"year": 2023, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "비정규직", "unit": "%", "value": 45.3}, {"year": 2024, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "비정규직", "unit": "%", "value": 46.4}, {"year": 2025, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "비정규직", "unit": "%", "value": 46}, {"year": 2026, "group": "근로복지", "indicator": "퇴직급여 수혜율", "emp_type": "비정규직", "unit": "%", "value": 45.7}, {"year": 2019, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 68.8}, {"year": 2020, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 68.8}, {"year": 2021, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 67.1}, {"year": 2022, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 69.9}, {"year": 2023, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 70.1}, {"year": 2024, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 70.3}, {"year": 2025, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 70.2}, {"year": 2026, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 70.1}, {"year": 2019, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "정규직", "unit": "%", "value": 86.4}, {"year": 2020, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "정규직", "unit": "%", "value": 86.6}, {"year": 2021, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "정규직", "unit": "%", "value": 86.7}, {"year": 2022, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "정규직", "unit": "%", "value": 88.8}, {"year": 2023, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "정규직", "unit": "%", "value": 88.1}, {"year": 2024, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "정규직", "unit": "%", "value": 89}, {"year": 2025, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "정규직", "unit": "%", "value": 89}, {"year": 2026, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "정규직", "unit": "%", "value": 89.5}, {"year": 2019, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "비정규직", "unit": "%", "value": 38.2}, {"year": 2020, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "비정규직", "unit": "%", "value": 37.6}, {"year": 2021, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "비정규직", "unit": "%", "value": 35.7}, {"year": 2022, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "비정규직", "unit": "%", "value": 38.5}, {"year": 2023, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "비정규직", "unit": "%", "value": 39.4}, {"year": 2024, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "비정규직", "unit": "%", "value": 40.1}, {"year": 2025, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "비정규직", "unit": "%", "value": 39.7}, {"year": 2026, "group": "근로복지", "indicator": "상여금 수혜율", "emp_type": "비정규직", "unit": "%", "value": 39.2}, {"year": 2019, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 48.2}, {"year": 2020, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 50}, {"year": 2021, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 50.6}, {"year": 2022, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 53}, {"year": 2023, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 54}, {"year": 2024, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 54.6}, {"year": 2025, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 54.6}, {"year": 2026, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 55}, {"year": 2019, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "정규직", "unit": "%", "value": 60.9}, {"year": 2020, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "정규직", "unit": "%", "value": 62.8}, {"year": 2021, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "정규직", "unit": "%", "value": 64.9}, {"year": 2022, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "정규직", "unit": "%", "value": 67.5}, {"year": 2023, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "정규직", "unit": "%", "value": 67.8}, {"year": 2024, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "정규직", "unit": "%", "value": 68.7}, {"year": 2025, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "정규직", "unit": "%", "value": 69.1}, {"year": 2026, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "정규직", "unit": "%", "value": 69.9}, {"year": 2019, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "비정규직", "unit": "%", "value": 25.9}, {"year": 2020, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "비정규직", "unit": "%", "value": 27.5}, {"year": 2021, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "비정규직", "unit": "%", "value": 27.6}, {"year": 2022, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "비정규직", "unit": "%", "value": 28.9}, {"year": 2023, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "비정규직", "unit": "%", "value": 30.5}, {"year": 2024, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "비정규직", "unit": "%", "value": 31.8}, {"year": 2025, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "비정규직", "unit": "%", "value": 31.2}, {"year": 2026, "group": "근로복지", "indicator": "시간외수당 수혜율", "emp_type": "비정규직", "unit": "%", "value": 31.1}, {"year": 2019, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 62.9}, {"year": 2020, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 64.6}, {"year": 2021, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 64.7}, {"year": 2022, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 66.3}, {"year": 2023, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 67.7}, {"year": 2024, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 68.5}, {"year": 2025, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 68.8}, {"year": 2026, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "임금근로자", "unit": "%", "value": 69.1}, {"year": 2019, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "정규직", "unit": "%", "value": 80.1}, {"year": 2020, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "정규직", "unit": "%", "value": 82.1}, {"year": 2021, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "정규직", "unit": "%", "value": 83.3}, {"year": 2022, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "정규직", "unit": "%", "value": 84.5}, {"year": 2023, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "정규직", "unit": "%", "value": 85.6}, {"year": 2024, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "정규직", "unit": "%", "value": 86.9}, {"year": 2025, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "정규직", "unit": "%", "value": 87.2}, {"year": 2026, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "정규직", "unit": "%", "value": 88.3}, {"year": 2019, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "비정규직", "unit": "%", "value": 33}, {"year": 2020, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "비정규직", "unit": "%", "value": 34.1}, {"year": 2021, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "비정규직", "unit": "%", "value": 35.1}, {"year": 2022, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "비정규직", "unit": "%", "value": 35.9}, {"year": 2023, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "비정규직", "unit": "%", "value": 37.2}, {"year": 2024, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "비정규직", "unit": "%", "value": 38.7}, {"year": 2025, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "비정규직", "unit": "%", "value": 39}, {"year": 2026, "group": "근로복지", "indicator": "유급휴가 수혜율", "emp_type": "비정규직", "unit": "%", "value": 38.4}], "sido": [{"year": 2025, "sido": "전국", "region_type": "합계", "include_sum": false, "total": 22413, "regular": 13845, "nonregular": 8568, "nonreg_pct": 38.2, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "서울", "region_type": "시도", "include_sum": true, "total": 4375, "regular": 2696, "nonregular": 1679, "nonreg_pct": 38.4, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "전남광주", "region_type": "시도(통합)", "include_sum": true, "total": 1264, "regular": 671, "nonregular": 593, "nonreg_pct": 46.9, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "광주", "region_type": "전남광주 하위", "include_sum": false, "total": 633, "regular": 354, "nonregular": 278, "nonreg_pct": 43.9, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "전남", "region_type": "전남광주 하위", "include_sum": false, "total": 631, "regular": 316, "nonregular": 315, "nonreg_pct": 49.9, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "부산", "region_type": "시도", "include_sum": true, "total": 1383, "regular": 830, "nonregular": 553, "nonreg_pct": 40.0, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "대구", "region_type": "시도", "include_sum": true, "total": 913, "regular": 561, "nonregular": 353, "nonreg_pct": 38.7, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "인천", "region_type": "시도", "include_sum": true, "total": 1384, "regular": 851, "nonregular": 533, "nonreg_pct": 38.5, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "대전", "region_type": "시도", "include_sum": true, "total": 643, "regular": 385, "nonregular": 258, "nonreg_pct": 40.1, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "울산", "region_type": "시도", "include_sum": true, "total": 478, "regular": 305, "nonregular": 173, "nonreg_pct": 36.2, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "세종", "region_type": "시도", "include_sum": true, "total": 177, "regular": 124, "nonregular": 53, "nonreg_pct": 29.9, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "경기", "region_type": "시도", "include_sum": true, "total": 6320, "regular": 4180, "nonregular": 2140, "nonreg_pct": 33.9, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "강원", "region_type": "시도", "include_sum": true, "total": 611, "regular": 294, "nonregular": 318, "nonreg_pct": 52.0, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "충북", "region_type": "시도", "include_sum": true, "total": 705, "regular": 428, "nonregular": 277, "nonreg_pct": 39.3, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "충남", "region_type": "시도", "include_sum": true, "total": 938, "regular": 566, "nonregular": 373, "nonreg_pct": 39.8, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "전북", "region_type": "시도", "include_sum": true, "total": 693, "regular": 405, "nonregular": 288, "nonreg_pct": 41.6, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "경북", "region_type": "시도", "include_sum": true, "total": 978, "regular": 592, "nonregular": 386, "nonreg_pct": 39.5, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "경남", "region_type": "시도", "include_sum": true, "total": 1278, "regular": 798, "nonregular": 480, "nonreg_pct": 37.6, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2025, "sido": "제주", "region_type": "시도", "include_sum": true, "total": 274, "regular": 162, "nonregular": 112, "nonreg_pct": 40.9, "diff_total": null, "diff_regular": null, "diff_nonregular": null}, {"year": 2026, "sido": "전국", "region_type": "합계", "include_sum": false, "total": 22526, "regular": 13855, "nonregular": 8671, "nonreg_pct": 38.5, "diff_total": 113, "diff_regular": 10, "diff_nonregular": 103}, {"year": 2026, "sido": "서울", "region_type": "시도", "include_sum": true, "total": 4326, "regular": 2672, "nonregular": 1654, "nonreg_pct": 38.2, "diff_total": -50, "diff_regular": -24, "diff_nonregular": -26}, {"year": 2026, "sido": "전남광주", "region_type": "시도(통합)", "include_sum": true, "total": 1260, "regular": 685, "nonregular": 575, "nonreg_pct": 45.6, "diff_total": -4, "diff_regular": 14, "diff_nonregular": -18}, {"year": 2026, "sido": "광주", "region_type": "전남광주 하위", "include_sum": false, "total": 633, "regular": 360, "nonregular": 272, "nonreg_pct": 43.0, "diff_total": 0, "diff_regular": 6, "diff_nonregular": -6}, {"year": 2026, "sido": "전남", "region_type": "전남광주 하위", "include_sum": false, "total": 627, "regular": 325, "nonregular": 303, "nonreg_pct": 48.3, "diff_total": -4, "diff_regular": 9, "diff_nonregular": -12}, {"year": 2026, "sido": "부산", "region_type": "시도", "include_sum": true, "total": 1386, "regular": 808, "nonregular": 578, "nonreg_pct": 41.7, "diff_total": 3, "diff_regular": -22, "diff_nonregular": 25}, {"year": 2026, "sido": "대구", "region_type": "시도", "include_sum": true, "total": 908, "regular": 540, "nonregular": 368, "nonreg_pct": 40.5, "diff_total": -5, "diff_regular": -21, "diff_nonregular": 16}, {"year": 2026, "sido": "인천", "region_type": "시도", "include_sum": true, "total": 1429, "regular": 847, "nonregular": 582, "nonreg_pct": 40.7, "diff_total": 45, "diff_regular": -3, "diff_nonregular": 48}, {"year": 2026, "sido": "대전", "region_type": "시도", "include_sum": true, "total": 648, "regular": 371, "nonregular": 278, "nonreg_pct": 42.9, "diff_total": 6, "diff_regular": -15, "diff_nonregular": 20}, {"year": 2026, "sido": "울산", "region_type": "시도", "include_sum": true, "total": 485, "regular": 290, "nonregular": 195, "nonreg_pct": 40.2, "diff_total": 7, "diff_regular": -15, "diff_nonregular": 22}, {"year": 2026, "sido": "세종", "region_type": "시도", "include_sum": true, "total": 183, "regular": 126, "nonregular": 57, "nonreg_pct": 31.1, "diff_total": 6, "diff_regular": 2, "diff_nonregular": 4}, {"year": 2026, "sido": "경기", "region_type": "시도", "include_sum": true, "total": 6403, "regular": 4230, "nonregular": 2173, "nonreg_pct": 33.9, "diff_total": 83, "diff_regular": 50, "diff_nonregular": 33}, {"year": 2026, "sido": "강원", "region_type": "시도", "include_sum": true, "total": 621, "regular": 317, "nonregular": 304, "nonreg_pct": 49.0, "diff_total": 10, "diff_regular": 24, "diff_nonregular": -14}, {"year": 2026, "sido": "충북", "region_type": "시도", "include_sum": true, "total": 706, "regular": 425, "nonregular": 281, "nonreg_pct": 39.8, "diff_total": 2, "diff_regular": -2, "diff_nonregular": 4}, {"year": 2026, "sido": "충남", "region_type": "시도", "include_sum": true, "total": 975, "regular": 608, "nonregular": 367, "nonreg_pct": 37.6, "diff_total": 37, "diff_regular": 42, "diff_nonregular": -6}, {"year": 2026, "sido": "전북", "region_type": "시도", "include_sum": true, "total": 685, "regular": 397, "nonregular": 289, "nonreg_pct": 42.2, "diff_total": -8, "diff_regular": -8, "diff_nonregular": 0}, {"year": 2026, "sido": "경북", "region_type": "시도", "include_sum": true, "total": 960, "regular": 565, "nonregular": 396, "nonreg_pct": 41.2, "diff_total": -18, "diff_regular": -27, "diff_nonregular": 10}, {"year": 2026, "sido": "경남", "region_type": "시도", "include_sum": true, "total": 1273, "regular": 819, "nonregular": 454, "nonreg_pct": 35.7, "diff_total": -5, "diff_regular": 21, "diff_nonregular": -26}, {"year": 2026, "sido": "제주", "region_type": "시도", "include_sum": true, "total": 278, "regular": 156, "nonregular": 122, "nonreg_pct": 43.9, "diff_total": 5, "diff_regular": -6, "diff_nonregular": 10}]}</script>
+
+  <script>
+    const RAW = JSON.parse(document.getElementById('embedded-data').textContent);
+    const YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
+
+    const state = {
+      year: 2026,
+      gender: '전체',
+      tab: 'overview',
+      sidoMetric: 'nonregular',
+      sidoScope: 'sum',
+      sidoSortKey: 'nonregular',
+      sidoSortAsc: false,
+      sidoQuery: ''
+    };
+
+    const charts = {};
+    function makeChart(id, config) {
+      if (charts[id]) charts[id].destroy();
+      const ctx = document.getElementById(id).getContext('2d');
+      charts[id] = new Chart(ctx, config);
+      return charts[id];
+    }
+
+    const fmtInt = (n) => (n == null ? '-' : Math.round(n).toLocaleString('ko-KR'));
+    const fmtDec = (n, d = 1) => (n == null ? '-' : Number(n).toFixed(d));
+    const fmtDiff = (n, d = 0, unit = '') => {
+      if (n == null || Number.isNaN(n)) return '-';
+      const sign = n > 0 ? '+' : '';
+      const val = d === 0 ? Math.round(n).toLocaleString('ko-KR') : Number(n).toFixed(d);
+      return `${sign}${val}${unit}`;
+    };
+
+    function getScale(year, gender, item) {
+      const found = RAW.scale.find(r => r.year === year && r.gender === gender && r.item === item);
+      return found ? found.value : null;
+    }
+
+    function getCond(year, indicator, empType) {
+      const found = RAW.conds.find(r => r.year === year && r.indicator === indicator && r.emp_type === empType);
+      return found ? found.value : null;
+    }
+
+    // ==========================================
+    // Render Tab 1: Overview
+    // ==========================================
+    function renderOverview() {
+      const y = state.year;
+      const g = state.gender;
+      const prevY = y > 2019 ? y - 1 : null;
+
+      const totalEmp = getScale(y, g, '임금근로자 계');
+      const regEmp = getScale(y, g, '정규직');
+      const nonregEmp = getScale(y, g, '비정규직 계');
+      const nonregPct = getScale(y, g, '비정규직 비중');
+      const pTotal = prevY ? getScale(prevY, g, '임금근로자 계') : null;
+      const pReg = prevY ? getScale(prevY, g, '정규직') : null;
+      const pNonreg = prevY ? getScale(prevY, g, '비정규직 계') : null;
+      const pNonregPct = prevY ? getScale(prevY, g, '비정규직 비중') : null;
+
+      const wageReg = getCond(y, '월평균임금', '정규직');
+      const wageNon = getCond(y, '월평균임금', '비정규직');
+      const wageRatio = (wageReg && wageNon) ? (wageNon / wageReg * 100) : null;
+      const pWageNon = prevY ? getCond(prevY, '월평균임금', '비정규직') : null;
+
+      const tenureNon = getCond(y, '평균 근속기간', '비정규직');
+      const tenureReg = getCond(y, '평균 근속기간', '정규직');
+      const pTenureNon = prevY ? getCond(prevY, '평균 근속기간', '비정규직') : null;
+
+      const diffBadge = (curr, prev, d = 0, unit = '', invertColor = false) => {
+        if (prev == null) return '<span class="badge badge-neutral">기준연도(2019)</span>';
+        const diff = curr - prev;
+        let cls = 'badge-neutral';
+        if (diff > 0) cls = invertColor ? 'badge-up' : 'badge-good';
+        else if (diff < 0) cls = invertColor ? 'badge-good' : 'badge-up';
+        return `<span class="badge ${cls}">전년 대비 ${fmtDiff(diff, d, unit)}</span>`;
+      };
+
+      const kpis = [
+        {
+          label: `임금근로자 (${g})`,
+          value: `${fmtInt(totalEmp)}천명`,
+          sub: diffBadge(totalEmp, pTotal, 0, '천명')
+        },
+        {
+          label: `정규직 근로자 (${g})`,
+          value: `${fmtInt(regEmp)}천명`,
+          sub: `${diffBadge(regEmp, pReg, 0, '천명')} <span>비중 ${fmtDec(100 - nonregPct)}%</span>`
+        },
+        {
+          label: `비정규직 근로자 (${g})`,
+          value: `${fmtInt(nonregEmp)}천명`,
+          sub: diffBadge(nonregEmp, pNonreg, 0, '천명', true)
+        },
+        {
+          label: `비정규직 비중 (${g})`,
+          value: `${fmtDec(nonregPct)}%`,
+          sub: diffBadge(nonregPct, pNonregPct, 1, '%p', true)
+        },
+        {
+          label: '비정규직 월평균임금 (전체)',
+          value: `${fmtDec(wageNon)}만원`,
+          sub: `${diffBadge(wageNon, pWageNon, 1, '만원')} <span>정규직(${fmtDec(wageReg)}만) 대비 ${fmtDec(wageRatio)}%</span>`
+        },
+        {
+          label: '비정규직 평균 근속기간 (전체)',
+          value: `${fmtInt(tenureNon)}개월`,
+          sub: `${diffBadge(tenureNon, pTenureNon, 0, '개월')} <span>정규직 ${fmtInt(tenureReg)}개월</span>`
+        }
+      ];
+
+      document.getElementById('kpiGrid').innerHTML = kpis.map(k => `
+        <div class="kpi-card">
+          <div class="kpi-label">${k.label}</div>
+          <div class="kpi-value">${k.value}</div>
+          <div class="kpi-sub">${k.sub}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('overviewInsight').innerHTML = `
+        <div>
+          <strong>${y}년 8월 핵심 요약 (${g}):</strong>
+          전체 임금근로자 <strong>${fmtInt(totalEmp)}천명</strong> 중 비정규직은 <strong>${fmtInt(nonregEmp)}천명(${fmtDec(nonregPct)}%)</strong>입니다.
+          유형별로는 한시적 <strong>${fmtInt(getScale(y, g, '한시적'))}천명</strong>, 시간제 <strong>${fmtInt(getScale(y, g, '시간제'))}천명</strong>, 비전형 <strong>${fmtInt(getScale(y, g, '비전형'))}천명</strong>으로 나타났습니다.
+        </div>
+      `;
+
+      document.getElementById('scaleTrendDesc').textContent = `성별: ${g} | 단위: 천명, % (2019~2026년 8월)`;
+      document.getElementById('typeBarTitle').textContent = `${y}년 비정규직 유형별 규모 (성별 비교)`;
+
+      // Chart 1: Regular vs Non-regular + Pct line
+      makeChart('chartScaleTrend', {
+        type: 'bar',
+        data: {
+          labels: YEARS.map(yr => `${yr}`),
+          datasets: [
+            {
+              label: '정규직 (천명)',
+              data: YEARS.map(yr => getScale(yr, g, '정규직')),
+              backgroundColor: 'rgba(37, 99, 235, 0.78)',
+              borderRadius: 4,
+              yAxisID: 'y',
+              order: 2
+            },
+            {
+              label: '비정규직 (천명)',
+              data: YEARS.map(yr => getScale(yr, g, '비정규직 계')),
+              backgroundColor: 'rgba(249, 115, 22, 0.82)',
+              borderRadius: 4,
+              yAxisID: 'y',
+              order: 2
+            },
+            {
+              label: '비정규직 비중 (%)',
+              type: 'line',
+              data: YEARS.map(yr => getScale(yr, g, '비정규직 비중')),
+              borderColor: '#0f2942',
+              backgroundColor: '#0f2942',
+              borderWidth: 2.5,
+              pointRadius: 4,
+              tension: 0.25,
+              yAxisID: 'y1',
+              order: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            y: { position: 'left', title: { display: true, text: '규모 (천명)' }, grid: { color: '#f1f5f9' } },
+            y1: { position: 'right', min: 20, max: 55, title: { display: true, text: '비중 (%)' }, grid: { drawOnChartArea: false } }
+          }
+        }
+      });
+
+      // Chart 2: Non-regular types trend
+      makeChart('chartNonregTypes', {
+        type: 'line',
+        data: {
+          labels: YEARS.map(yr => `${yr}`),
+          datasets: [
+            {
+              label: '한시적',
+              data: YEARS.map(yr => getScale(yr, g, '한시적')),
+              borderColor: '#2563eb',
+              backgroundColor: 'rgba(37, 99, 235, 0.1)',
+              borderWidth: 2.5,
+              pointRadius: 4,
+              tension: 0.25
+            },
+            {
+              label: '시간제',
+              data: YEARS.map(yr => getScale(yr, g, '시간제')),
+              borderColor: '#f97316',
+              backgroundColor: 'rgba(249, 115, 22, 0.1)',
+              borderWidth: 2.5,
+              pointRadius: 4,
+              tension: 0.25
+            },
+            {
+              label: '비전형',
+              data: YEARS.map(yr => getScale(yr, g, '비전형')),
+              borderColor: '#059669',
+              backgroundColor: 'rgba(5, 150, 105, 0.1)',
+              borderWidth: 2.5,
+              pointRadius: 4,
+              tension: 0.25
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            y: { title: { display: true, text: '규모 (천명)' }, grid: { color: '#f1f5f9' } }
+          }
+        }
+      });
+
+      // Chart 3: Gender non-regular % comparison
+      makeChart('chartGenderPct', {
+        type: 'line',
+        data: {
+          labels: YEARS.map(yr => `${yr}`),
+          datasets: [
+            {
+              label: '여자 비정규직 비중 (%)',
+              data: YEARS.map(yr => getScale(yr, '여자', '비정규직 비중')),
+              borderColor: '#e11d48',
+              backgroundColor: '#e11d48',
+              borderWidth: 2.5,
+              pointRadius: 4,
+              tension: 0.25
+            },
+            {
+              label: '전체 비정규직 비중 (%)',
+              data: YEARS.map(yr => getScale(yr, '전체', '비정규직 비중')),
+              borderColor: '#475569',
+              borderDash: [5, 4],
+              borderWidth: 2,
+              pointRadius: 3,
+              tension: 0.25
+            },
+            {
+              label: '남자 비정규직 비중 (%)',
+              data: YEARS.map(yr => getScale(yr, '남자', '비정규직 비중')),
+              borderColor: '#2563eb',
+              backgroundColor: '#2563eb',
+              borderWidth: 2.5,
+              pointRadius: 4,
+              tension: 0.25
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            y: { min: 25, max: 52, title: { display: true, text: '비중 (%)' }, grid: { color: '#f1f5f9' } }
+          }
+        }
+      });
+
+      // Chart 4: Type x Gender Bar for selected year
+      const types = ['한시적', '시간제', '비전형'];
+      makeChart('chartTypeGenderBar', {
+        type: 'bar',
+        data: {
+          labels: types,
+          datasets: [
+            {
+              label: '남자 (천명)',
+              data: types.map(t => getScale(y, '남자', t)),
+              backgroundColor: 'rgba(37, 99, 235, 0.82)',
+              borderRadius: 6
+            },
+            {
+              label: '여자 (천명)',
+              data: types.map(t => getScale(y, '여자', t)),
+              backgroundColor: 'rgba(225, 29, 72, 0.78)',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { title: { display: true, text: '규모 (천명)' }, grid: { color: '#f1f5f9' } }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // Render Tab 2: Characteristics
+    // ==========================================
+    function renderChars() {
+      const y = state.year;
+      document.getElementById('ageBarTitle').textContent = `${y}년 연령계층별 비정규직 비중 및 추정규모`;
+      document.getElementById('industryTitle').textContent = `${y}년 산업별 비정규직 비중 (17개 산업)`;
+      document.getElementById('occTitle').textContent = `${y}년 직업별 비정규직 구성비`;
+
+      const ageRows = RAW.chars.filter(r => r.year === y && r.dim === '연령계층별');
+      makeChart('chartAgeBar', {
+        type: 'bar',
+        data: {
+          labels: ageRows.map(r => r.item),
+          datasets: [{
+            label: '비중 (%)',
+            data: ageRows.map(r => r.pct),
+            backgroundColor: ageRows.map(r => r.item === '60세이상' ? '#f97316' : '#2563eb'),
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                afterLabel: (ctx) => `추정규모: ${fmtDec(ageRows[ctx.dataIndex].est_k, 1)}천명`
+              }
+            }
+          },
+          scales: { y: { title: { display: true, text: '비중 (%)' }, grid: { color: '#f1f5f9' } } }
+        }
+      });
+
+      const ageGroups = ['20 - 29세', '30 - 39세', '40 - 49세', '50 - 59세', '60세이상'];
+      const ageColors = ['#06b6d4', '#8b5cf6', '#10b981', '#3b82f6', '#f97316'];
+      makeChart('chartAgeTrend', {
+        type: 'line',
+        data: {
+          labels: YEARS.map(yr => `${yr}`),
+          datasets: ageGroups.map((ag, idx) => ({
+            label: ag,
+            data: YEARS.map(yr => {
+              const found = RAW.chars.find(r => r.year === yr && r.dim === '연령계층별' && r.item === ag);
+              return found ? found.pct : null;
+            }),
+            borderColor: ageColors[idx],
+            backgroundColor: ageColors[idx],
+            borderWidth: ag === '60세이상' ? 3 : 2,
+            pointRadius: 3.5,
+            tension: 0.25
+          }))
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          scales: { y: { title: { display: true, text: '비중 (%)' }, grid: { color: '#f1f5f9' } } }
+        }
+      });
+
+      const indRows = RAW.chars.filter(r => r.year === y && r.dim === '산업별').sort((a, b) => b.pct - a.pct);
+      makeChart('chartIndustry', {
+        type: 'bar',
+        data: {
+          labels: indRows.map(r => r.item),
+          datasets: [{
+            label: '비중 (%)',
+            data: indRows.map(r => r.pct),
+            backgroundColor: indRows.map((_, i) => i < 3 ? '#f97316' : 'rgba(37, 99, 235, 0.78)'),
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                afterLabel: (ctx) => `추정규모: ${fmtDec(indRows[ctx.dataIndex].est_k, 1)}천명`
+              }
+            }
+          },
+          scales: { x: { title: { display: true, text: '비중 (%)' }, grid: { color: '#f1f5f9' } } }
+        }
+      });
+
+      const occRows = RAW.chars.filter(r => r.year === y && r.dim === '직업별').sort((a, b) => b.pct - a.pct);
+      makeChart('chartOccupation', {
+        type: 'doughnut',
+        data: {
+          labels: occRows.map(r => `${r.item} (${r.pct}%)`),
+          datasets: [{
+            data: occRows.map(r => r.pct),
+            backgroundColor: ['#1e3a5f', '#2563eb', '#f97316', '#10b981', '#8b5cf6', '#94a3b8'],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const r = occRows[ctx.dataIndex];
+                  return `${r.item}: ${r.pct}% (약 ${fmtDec(r.est_k, 1)}천명)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // Render Tab 3: Working Conditions
+    // ==========================================
+    function renderConds() {
+      const y = state.year;
+      document.getElementById('insuranceTitle').textContent = `${y}년 사회보험 가입률 & 근로복지 수혜율 비교`;
+
+      const wageRegArr = YEARS.map(yr => getCond(yr, '월평균임금', '정규직'));
+      const wageNonArr = YEARS.map(yr => getCond(yr, '월평균임금', '비정규직'));
+      const wageRatioArr = YEARS.map((_, i) => Number((wageNonArr[i] / wageRegArr[i] * 100).toFixed(1)));
+
+      makeChart('chartWageTrend', {
+        type: 'bar',
+        data: {
+          labels: YEARS.map(yr => `${yr}`),
+          datasets: [
+            {
+              label: '정규직 월평균임금 (만원)',
+              data: wageRegArr,
+              backgroundColor: 'rgba(37, 99, 235, 0.8)',
+              borderRadius: 4,
+              yAxisID: 'y',
+              order: 2
+            },
+            {
+              label: '비정규직 월평균임금 (만원)',
+              data: wageNonArr,
+              backgroundColor: 'rgba(249, 115, 22, 0.85)',
+              borderRadius: 4,
+              yAxisID: 'y',
+              order: 2
+            },
+            {
+              label: '정규직 대비 임금비율 (%)',
+              type: 'line',
+              data: wageRatioArr,
+              borderColor: '#0f2942',
+              backgroundColor: '#0f2942',
+              borderWidth: 2.5,
+              pointRadius: 4,
+              yAxisID: 'y1',
+              order: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            y: { position: 'left', title: { display: true, text: '만원' }, grid: { color: '#f1f5f9' } },
+            y1: { position: 'right', min: 40, max: 70, title: { display: true, text: '임금비율 (%)' }, grid: { drawOnChartArea: false } }
+          }
+        }
+      });
+
+      const benefitItems = [
+        '국민연금 가입률', '건강보험 가입률', '고용보험 가입률',
+        '퇴직급여 수혜율', '상여금 수혜율', '시간외수당 수혜율', '유급휴가 수혜율'
+      ];
+      makeChart('chartBenefitBar', {
+        type: 'bar',
+        data: {
+          labels: benefitItems.map(s => s.replace(' 가입률', '').replace(' 수혜율', '')),
+          datasets: [
+            {
+              label: '정규직 (%)',
+              data: benefitItems.map(ind => getCond(y, ind, '정규직')),
+              backgroundColor: 'rgba(37, 99, 235, 0.82)',
+              borderRadius: 4
+            },
+            {
+              label: '비정규직 (%)',
+              data: benefitItems.map(ind => getCond(y, ind, '비정규직')),
+              backgroundColor: 'rgba(249, 115, 22, 0.85)',
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { min: 0, max: 100, title: { display: true, text: '비율 (%)' }, grid: { color: '#f1f5f9' } } }
+        }
+      });
+
+      const makeTripleLine = (canvasId, indName, unitLabel) => {
+        makeChart(canvasId, {
+          type: 'line',
+          data: {
+            labels: YEARS.map(yr => `${yr}`),
+            datasets: [
+              { label: '정규직', data: YEARS.map(yr => getCond(yr, indName, '정규직')), borderColor: '#2563eb', borderWidth: 2.5, pointRadius: 3.5, tension: 0.2 },
+              { label: '임금근로자 전체', data: YEARS.map(yr => getCond(yr, indName, '임금근로자')), borderColor: '#64748b', borderDash: [4, 4], borderWidth: 2, pointRadius: 3, tension: 0.2 },
+              { label: '비정규직', data: YEARS.map(yr => getCond(yr, indName, '비정규직')), borderColor: '#f97316', borderWidth: 2.5, pointRadius: 3.5, tension: 0.2 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: { y: { title: { display: true, text: unitLabel }, grid: { color: '#f1f5f9' } } }
+          }
+        });
+      };
+      makeTripleLine('chartTenure', '평균 근속기간', '개월');
+      makeTripleLine('chartHours', '평균 취업시간', '시간');
+    }
+
+    // ==========================================
+    // Render Tab 4: Sido
+    // ==========================================
+    function renderSido() {
+      const targetYear = (state.year === 2025 || state.year === 2026) ? state.year : 2026;
+      const metricMap = {
+        nonregular: { label: '비정규직 규모 (천명)', fmt: fmtInt },
+        nonreg_pct: { label: '비정규직 비중 (%)', fmt: (v) => fmtDec(v, 1) },
+        diff_nonregular: { label: '전년 대비 비정규직 증감 (천명)', fmt: (v) => fmtDiff(v, 0) }
+      };
+      const mInfo = metricMap[state.sidoMetric];
+      document.getElementById('sidoChartTitle').textContent = `${targetYear}년 시도별 ${mInfo.label}`;
+
+      let rows = RAW.sido.filter(r => r.year === targetYear);
+      const chartRows = rows.filter(r => {
+        if (r.region_type === '합계') return false;
+        if (state.sidoScope === 'sum') return r.include_sum;
+        return true;
+      });
+
+      const metricKey = (targetYear === 2025 && state.sidoMetric === 'diff_nonregular') ? 'nonregular' : state.sidoMetric;
+      const sortedChart = [...chartRows].sort((a, b) => (b[metricKey] ?? -9999) - (a[metricKey] ?? -9999));
+
+      makeChart('chartSido', {
+        type: 'bar',
+        data: {
+          labels: sortedChart.map(r => r.region_type === '전남광주 하위' ? `${r.sido} (하위)` : r.sido),
+          datasets: [{
+            label: mInfo.label,
+            data: sortedChart.map(r => r[metricKey]),
+            backgroundColor: sortedChart.map(r => {
+              if (metricKey === 'diff_nonregular') return (r[metricKey] >= 0 ? '#e11d48' : '#2563eb');
+              return r.region_type === '전남광주 하위' ? '#94a3b8' : '#2563eb';
+            }),
+            borderRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { title: { display: true, text: mInfo.label }, grid: { color: '#f1f5f9' } } }
+        }
+      });
+
+      // Table rendering
+      let tableRows = rows.filter(r => !state.sidoQuery || r.sido.includes(state.sidoQuery));
+      tableRows.sort((a, b) => {
+        if (a.region_type === '합계') return -1;
+        if (b.region_type === '합계') return 1;
+        const va = a[state.sidoSortKey] ?? -999999;
+        const vb = b[state.sidoSortKey] ?? -999999;
+        if (typeof va === 'string') return state.sidoSortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+        return state.sidoSortAsc ? va - vb : vb - va;
+      });
+
+      const tbody = document.querySelector('#sidoTable tbody');
+      tbody.innerHTML = tableRows.map(r => {
+        const cls = r.region_type === '합계' ? 'row-highlight' : (r.region_type === '전남광주 하위' ? 'row-sub' : '');
+        return `
+          <tr class="${cls}">
+            <td>${r.sido}</td>
+            <td>${r.region_type}</td>
+            <td>${fmtInt(r.total)}</td>
+            <td>${fmtInt(r.regular)}</td>
+            <td>${fmtInt(r.nonregular)}</td>
+            <td>${fmtDec(r.nonreg_pct, 1)}%</td>
+            <td>${fmtDiff(r.diff_total, 0)}</td>
+            <td>${fmtDiff(r.diff_nonregular, 0)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderAll() {
+      if (state.tab === 'overview') renderOverview();
+      else if (state.tab === 'chars') renderChars();
+      else if (state.tab === 'conds') renderConds();
+      else if (state.tab === 'sido') renderSido();
+    }
+
+    // Event Listeners
+    document.getElementById('yearSelect').addEventListener('change', (e) => {
+      state.year = Number(e.target.value);
+      renderAll();
+    });
+
+    document.querySelectorAll('#genderFilter .seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#genderFilter .seg-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.gender = btn.dataset.gender;
+        renderAll();
+      });
+    });
+
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        state.tab = tab.dataset.tab;
+        document.getElementById(`tab-${state.tab}`).classList.add('active');
+        renderAll();
+      });
+    });
+
+    document.querySelectorAll('#sidoMetricGroup .pill-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#sidoMetricGroup .pill-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.sidoMetric = btn.dataset.metric;
+        renderSido();
+      });
+    });
+
+    document.querySelectorAll('#sidoScopeGroup .pill-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#sidoScopeGroup .pill-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.sidoScope = btn.dataset.scope;
+        renderSido();
+      });
+    });
+
+    document.getElementById('sidoSearch').addEventListener('input', (e) => {
+      state.sidoQuery = e.target.value.trim();
+      renderSido();
+    });
+
+    document.querySelectorAll('#sidoTable th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.dataset.sort;
+        if (state.sidoSortKey === key) state.sidoSortAsc = !state.sidoSortAsc;
+        else { state.sidoSortKey = key; state.sidoSortAsc = false; }
+        renderSido();
+      });
+    });
+
+    // Initial render
+    renderAll();
+  </script>
+</body>
+</html>
